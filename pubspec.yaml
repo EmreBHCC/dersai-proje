@@ -13,6 +13,9 @@ dependencies:
   riverpod_annotation: ^2.6.1
   flutter_screenutil: ^5.9.3
   google_fonts: ^6.2.1
+  tflite_flutter: ^0.11.0
+  image_picker: ^1.1.2
+  image: ^4.3.0
 
 dev_dependencies:
   flutter_test:
@@ -23,3 +26,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/models/best_float16.tflite
+    - assets/models/labels.txt

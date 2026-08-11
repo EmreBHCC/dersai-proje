@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_navigation_bar.dart';
 import '../../../../core/widgets/section_header.dart';
+import '../../../detection/presentation/screens/image_source_screen.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/courses_section.dart';
 import '../widgets/homepage_header.dart';
@@ -92,7 +93,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               sliver: SliverToBoxAdapter(
                 child: QuickActionsRow(
                   actions: quickActions,
-                  onActionTap: (_) {},
+                  onActionTap: (action) {
+                    if (action.id == 'scan') {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ImageSourceScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ),
             ),
