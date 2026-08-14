@@ -166,10 +166,12 @@ class ObjectDetectionService {
       }
       if (bestScore < confidenceThreshold) continue;
 
-      final cx = valueAt(anchor, 0);
-      final cy = valueAt(anchor, 1);
-      final w = valueAt(anchor, 2);
-      final h = valueAt(anchor, 3);
+      // The exported model emits box coordinates normalized to [0, 1]
+      // relative to the 640x640 input, not absolute input-pixel values.
+      final cx = valueAt(anchor, 0) * _inputSize;
+      final cy = valueAt(anchor, 1) * _inputSize;
+      final w = valueAt(anchor, 2) * _inputSize;
+      final h = valueAt(anchor, 3) * _inputSize;
 
       final x1 = (cx - w / 2 - letterbox.padX) / letterbox.scale;
       final y1 = (cy - h / 2 - letterbox.padY) / letterbox.scale;
