@@ -3,10 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
+import '../../../notes/presentation/screens/processed_text_screen.dart';
 import '../../domain/models/detected_object.dart';
 import '../providers/detection_providers.dart';
 import '../widgets/detection_painter.dart';
@@ -151,7 +154,44 @@ class _DetectionResultScreenState extends ConsumerState<DetectionResultScreen> {
                   },
                 ),
         ),
-        SizedBox(height: AppSpacing.md),
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.screenPadding,
+            AppSpacing.sm,
+            AppSpacing.screenPadding,
+            AppSpacing.md,
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52.h,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProcessedTextScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                elevation: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'İşlenmiş Metni Kaydet',
+                    style: AppTextStyles.buttonLabel(Colors.white),
+                  ),
+                  SizedBox(width: AppSpacing.xs),
+                  const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
