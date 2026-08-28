@@ -7,9 +7,14 @@ import '../../domain/models/course.dart';
 import 'course_card.dart';
 
 class CoursesSection extends StatelessWidget {
-  const CoursesSection({super.key, required this.courses});
+  const CoursesSection({
+    super.key,
+    required this.courses,
+    required this.onCourseTap,
+  });
 
   final List<Course> courses;
+  final ValueChanged<Course> onCourseTap;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +35,10 @@ class CoursesSection extends StatelessWidget {
               crossAxisSpacing: AppSpacing.sm,
               mainAxisExtent: 180.h,
             ),
-            itemBuilder: (context, index) => CourseCard(course: courses[index]),
+            itemBuilder: (context, index) => CourseCard(
+              course: courses[index],
+              onTap: () => onCourseTap(courses[index]),
+            ),
           ),
         ],
       ),
