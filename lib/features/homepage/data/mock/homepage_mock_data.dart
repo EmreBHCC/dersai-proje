@@ -12,7 +12,7 @@ abstract final class HomepageMockData {
   static const TodaysSummary todaysSummary = TodaysSummary(
     icon: Icons.event_note_outlined,
     title: 'Yaklaşan Sınav',
-    subtitle: 'Fizik, 12 Ekim',
+    subtitle: 'Veri Yapıları · CS 201',
     metaIcon: Icons.access_time_rounded,
     metaLabel: 'Bugün 4 yeni tarama',
   );
