@@ -5,6 +5,9 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_navigation_bar.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../detection/presentation/screens/image_source_screen.dart';
+import '../../../exams/presentation/providers/exams_providers.dart';
+import '../../../exams/presentation/screens/exam_detail_screen.dart';
+import '../../../exams/presentation/screens/exams_screen.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/courses_section.dart';
 import '../widgets/homepage_header.dart';
@@ -29,9 +32,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       label: 'Anasayfa',
     ),
     AppBottomNavItem(
-      icon: Icons.document_scanner_outlined,
-      activeIcon: Icons.document_scanner_rounded,
-      label: 'Tara',
+      icon: Icons.event_note_outlined,
+      activeIcon: Icons.event_note_rounded,
+      label: 'Sınavlarım',
     ),
     AppBottomNavItem(
       icon: Icons.menu_book_outlined,
@@ -52,6 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final quickActions = ref.watch(quickActionsProvider);
     final recentNotes = ref.watch(recentNotesProvider);
     final courses = ref.watch(coursesProvider);
+    final nearestExam = ref.watch(upcomingExamsProvider).first;
 
     return Scaffold(
       body: SafeArea(
@@ -76,7 +80,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     SizedBox(height: AppSpacing.lg),
                     const SectionHeader(title: 'Bugünün Özeti'),
                     SizedBox(height: AppSpacing.md),
-                    TodaysSummaryCard(summary: todaysSummary),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ExamDetailScreen(exam: nearestExam),
+                          ),
+                        );
+                      },
+                      child: TodaysSummaryCard(summary: todaysSummary),
+                    ),
                     SizedBox(height: AppSpacing.xl),
                   ],
                 ),
@@ -117,6 +130,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         items: _navItems,
         currentIndex: _selectedNavIndex,
         onItemSelected: (index) {
+          if (index == 1) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExamsScreen()),
+            );
+            return;
+          }
           setState(() => _selectedNavIndex = index);
         },
       ),
