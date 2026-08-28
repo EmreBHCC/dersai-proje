@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_navigation_bar.dart';
 import '../../../../core/widgets/section_header.dart';
+import '../../../courses/presentation/providers/courses_providers.dart';
+import '../../../courses/presentation/screens/course_detail_screen.dart';
+import '../../../courses/presentation/screens/courses_screen.dart';
 import '../../../detection/presentation/screens/image_source_screen.dart';
 import '../../../exams/presentation/providers/exams_providers.dart';
 import '../../../exams/presentation/screens/exam_detail_screen.dart';
@@ -120,7 +123,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverToBoxAdapter(
-              child: CoursesSection(courses: courses),
+              child: CoursesSection(
+                courses: courses,
+                onCourseTap: (course) {
+                  final matched = ref
+                      .read(allCoursesProvider)
+                      .firstWhere((c) => c.id == course.id);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CourseDetailScreen(course: matched),
+                    ),
+                  );
+                },
+              ),
             ),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
           ],
@@ -133,6 +148,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (index == 1) {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ExamsScreen()),
+            );
+            return;
+          }
+          if (index == 2) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CoursesScreen()),
             );
             return;
           }
