@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 import '../providers/user_session_provider.dart';
 import '../widgets/auth_back_button.dart';
 import '../widgets/auth_brand_header.dart';
@@ -44,6 +44,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
+
     return AuthScreenScaffold(
       children: [
         const AuthBackButton(),
@@ -55,16 +58,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           style: TextStyle(
             fontSize: 22.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.lightTextPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 4.h),
         Text(
           'Akıllı çalışma asistanına katıl',
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: AppColors.lightTextSecondary,
-          ),
+          style: TextStyle(fontSize: 13.sp, color: appColors.textSecondary),
         ),
         SizedBox(height: 24.h),
         const AuthFieldLabel('Ad Soyad'),
@@ -98,14 +98,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         Text.rich(
           TextSpan(
             text: 'Devam ederek ',
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: AppColors.lightTextTertiary,
-            ),
+            style: TextStyle(fontSize: 11.sp, color: appColors.textTertiary),
             children: [
               TextSpan(
                 text: 'Kullanım Şartları',
-                style: const TextStyle(color: AppColors.primary),
+                style: TextStyle(color: theme.colorScheme.primary),
               ),
               const TextSpan(text: '\'nı kabul edersin.'),
             ],
@@ -125,16 +122,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             child: Text.rich(
               TextSpan(
                 text: 'Zaten hesabın var mı? ',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: AppColors.lightTextSecondary,
-                ),
+                style: TextStyle(fontSize: 12.sp, color: appColors.textSecondary),
                 children: [
                   TextSpan(
                     text: 'Giriş yap',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],

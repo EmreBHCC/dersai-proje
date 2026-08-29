@@ -4,8 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
 
-/// Small uppercase caption that titles each profile section, with an optional
-/// trailing action link (e.g. "Geçmiş →").
 class ProfileSectionLabel extends StatelessWidget {
   const ProfileSectionLabel({
     super.key,

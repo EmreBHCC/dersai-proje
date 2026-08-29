@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 
-/// Small caption placed directly above an [AuthTextField].
 class AuthFieldLabel extends StatelessWidget {
   const AuthFieldLabel(this.text, {super.key});
 
@@ -18,7 +17,7 @@ class AuthFieldLabel extends StatelessWidget {
         style: TextStyle(
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,
-          color: AppColors.lightTextSecondary,
+          color: context.appColors.textSecondary,
         ),
       ),
     );

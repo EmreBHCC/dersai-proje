@@ -16,10 +16,6 @@ class SettingsEntry {
   final IconData icon;
   final String label;
   final SettingsEntryKind kind;
-
-  /// Whether the leading icon uses the primary accent tint (vs. a muted tint).
   final bool highlighted;
-
-  /// Initial state for [SettingsEntryKind.toggle] rows.
   final bool initialValue;
 }

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 import '../../../homepage/presentation/screens/home_screen.dart';
 import '../widgets/auth_back_button.dart';
 import '../widgets/auth_primary_button.dart';
@@ -67,6 +67,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
     final canResend = _secondsLeft == 0;
     final email = widget.email?.trim();
 
@@ -82,17 +84,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.lightTextPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 6.h),
         Text(
           'Doğrulama kodu şu adrese gönderildi:',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: AppColors.lightTextSecondary,
-          ),
+          style: TextStyle(fontSize: 13.sp, color: appColors.textSecondary),
         ),
         SizedBox(height: 2.h),
         Text(
@@ -101,7 +100,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           style: TextStyle(
             fontSize: 13.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.lightTextPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 26.h),
@@ -112,10 +111,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           child: Text.rich(
             TextSpan(
               text: 'Kod gelmedi mi? ',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: AppColors.lightTextSecondary,
-              ),
+              style: TextStyle(fontSize: 12.sp, color: appColors.textSecondary),
               children: [
                 TextSpan(
                   text: canResend
@@ -123,7 +119,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       : 'Tekrar gönder ($_formattedCountdown)',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
               ],
@@ -147,7 +143,7 @@ class _MailBadge extends StatelessWidget {
       height: 56.w,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Icon(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 import '../../../homepage/presentation/screens/home_screen.dart';
 import '../providers/user_session_provider.dart';
 import '../widgets/auth_brand_header.dart';
@@ -54,6 +54,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
+
     return AuthScreenScaffold(
       children: [
         SizedBox(height: 8.h),
@@ -64,16 +67,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           style: TextStyle(
             fontSize: 22.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.lightTextPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 4.h),
         Text(
           'Devam etmek için giriş yap',
-          style: TextStyle(
-            fontSize: 13.sp,
-            color: AppColors.lightTextSecondary,
-          ),
+          style: TextStyle(fontSize: 13.sp, color: appColors.textSecondary),
         ),
         SizedBox(height: 24.h),
         const AuthFieldLabel('E-posta'),
@@ -104,7 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
-                color: AppColors.primary,
+                color: theme.colorScheme.primary,
               ),
             ),
           ),
@@ -129,16 +129,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Text.rich(
               TextSpan(
                 text: 'Hesabın yok mu? ',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: AppColors.lightTextSecondary,
-                ),
+                style: TextStyle(fontSize: 12.sp, color: appColors.textSecondary),
                 children: [
                   TextSpan(
                     text: 'Kayıt ol',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],

@@ -2,16 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/models/user_session.dart';
 
-/// App-wide session state. `null` means no user is signed in.
-///
-/// Screens read the display name through this provider (directly or via the
-/// `userFirstNameProvider` / `userFullNameProvider` wrappers) so the name the
-/// user types during login / sign-up shows up everywhere.
 class UserSessionNotifier extends Notifier<UserSession?> {
   @override
   UserSession? build() => null;
 
-  /// Sign-up flow: the user typed their name explicitly.
   void signUp({required String fullName, required String email}) {
     final name = fullName.trim();
     state = UserSession(
@@ -20,7 +14,6 @@ class UserSessionNotifier extends Notifier<UserSession?> {
     );
   }
 
-  /// Login flow: no name field, so derive a display name from the e-mail.
   void logIn({required String email}) {
     state = UserSession(fullName: _nameFromEmail(email), email: email.trim());
   }
@@ -34,7 +27,6 @@ class UserSessionNotifier extends Notifier<UserSession?> {
 
   void signOut() => state = null;
 
-  /// "ece.yilmaz@mail.com" -> "Ece Yilmaz".
   static String _nameFromEmail(String email) {
     final local = email.trim().split('@').first;
     final words = local
