@@ -116,7 +116,10 @@ class _NotificationButton extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFFF4D4D),
                 shape: BoxShape.circle,
-                border: Border.all(color: theme.colorScheme.surface, width: 1.5),
+                border: Border.all(
+                  color: theme.colorScheme.surface,
+                  width: 1.5,
+                ),
               ),
             ),
           ),

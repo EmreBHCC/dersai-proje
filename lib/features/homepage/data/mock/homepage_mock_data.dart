@@ -8,6 +8,7 @@ import '../../domain/models/todays_summary.dart';
 
 abstract final class HomepageMockData {
   static const String userFirstName = 'Levent';
+  static const String userFullName = 'Levent Yılmaz';
 
   static const TodaysSummary todaysSummary = TodaysSummary(
     icon: Icons.event_note_outlined,
@@ -29,11 +30,7 @@ abstract final class HomepageMockData {
       label: 'Tara',
       isPrimary: true,
     ),
-    QuickAction(
-      id: 'voice',
-      icon: Icons.mic_none_rounded,
-      label: 'Sesli Not',
-    ),
+    QuickAction(id: 'voice', icon: Icons.mic_none_rounded, label: 'Sesli Not'),
   ];
 
   static const List<RecentNote> recentNotes = [
