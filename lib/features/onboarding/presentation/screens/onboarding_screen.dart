@@ -6,7 +6,7 @@ import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
-import '../../../homepage/presentation/screens/home_screen.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../providers/onboarding_providers.dart';
 import '../widgets/onboarding_dot_indicator.dart';
 import '../widgets/onboarding_slide.dart';
@@ -28,15 +28,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
-  void _goToHome() {
+  void _goToLogin() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
 
   void _onNextPressed(int pageCount) {
     if (_currentIndex == pageCount - 1) {
-      _goToHome();
+      _goToLogin();
       return;
     }
     _pageController.nextPage(
@@ -64,7 +64,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   vertical: AppSpacing.sm,
                 ),
                 child: TextButton(
-                  onPressed: isLastPage ? null : _goToHome,
+                  onPressed: isLastPage ? null : _goToLogin,
                   child: Text(
                     'Geç',
                     style: AppTextStyles.buttonLabel(

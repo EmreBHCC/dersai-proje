@@ -25,9 +25,7 @@ class RecentNotesSection extends StatelessWidget {
           height: 190.h,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenPadding,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
             itemCount: notes.length,
             separatorBuilder: (_, _) => SizedBox(width: AppSpacing.sm),
             itemBuilder: (context, index) => RecentNoteCard(note: notes[index]),

@@ -11,6 +11,7 @@ import '../../../detection/presentation/screens/image_source_screen.dart';
 import '../../../exams/presentation/providers/exams_providers.dart';
 import '../../../exams/presentation/screens/exam_detail_screen.dart';
 import '../../../exams/presentation/screens/exams_screen.dart';
+import '../../../profile/presentation/screens/profile_screen.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/courses_section.dart';
 import '../widgets/homepage_header.dart';
@@ -98,9 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(
-              child: RecentNotesSection(notes: recentNotes),
-            ),
+            SliverToBoxAdapter(child: RecentNotesSection(notes: recentNotes)),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverPadding(
               padding: EdgeInsets.symmetric(
@@ -146,15 +145,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         currentIndex: _selectedNavIndex,
         onItemSelected: (index) {
           if (index == 1) {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ExamsScreen()),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const ExamsScreen()));
             return;
           }
           if (index == 2) {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CoursesScreen()),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const CoursesScreen()));
+            return;
+          }
+          if (index == 3) {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
             return;
           }
           setState(() => _selectedNavIndex = index);
