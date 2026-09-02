@@ -1,31 +1,37 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
 import '../../../homepage/presentation/screens/home_screen.dart';
+import '../providers/user_session_provider.dart';
 import '../widgets/auth_back_button.dart';
 import '../widgets/auth_primary_button.dart';
 import '../widgets/auth_screen_scaffold.dart';
 import '../widgets/otp_code_input.dart';
 
-class EmailVerificationScreen extends StatefulWidget {
+class EmailVerificationScreen extends ConsumerStatefulWidget {
   const EmailVerificationScreen({super.key, this.email});
 
   final String? email;
 
   @override
-  State<EmailVerificationScreen> createState() =>
+  ConsumerState<EmailVerificationScreen> createState() =>
       _EmailVerificationScreenState();
 }
 
-class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
+class _EmailVerificationScreenState
+    extends ConsumerState<EmailVerificationScreen> {
   static const int _resendSeconds = 45;
 
   Timer? _timer;
   int _secondsLeft = _resendSeconds;
+  String _code = '';
+  bool _isVerifying = false;
+  bool _isResending = false;
 
   @override
   void initState() {
@@ -58,16 +64,52 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
-  void _verify() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-      (route) => false,
-    );
+  Future<void> _verify() async {
+    final email = widget.email?.trim();
+    if (email == null || email.isEmpty || _code.length != 6) return;
+
+    setState(() => _isVerifying = true);
+    try {
+      await ref
+          .read(userSessionProvider.notifier)
+          .verifyCode(email: email, token: _code);
+
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Doğrulama başarısız: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isVerifying = false);
+    }
+  }
+
+  Future<void> _resend() async {
+    final email = widget.email?.trim();
+    if (email == null || email.isEmpty) return;
+
+    setState(() => _isResending = true);
+    try {
+      await ref.read(userSessionProvider.notifier).resendCode(email: email);
+      _startCountdown();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Kod gönderilemedi: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isResending = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final canResend = _secondsLeft == 0;
+    final canResend = _secondsLeft == 0 && !_isResending;
     final email = widget.email?.trim();
 
     return AuthScreenScaffold(
@@ -105,10 +147,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           ),
         ),
         SizedBox(height: 26.h),
-        const OtpCodeInput(),
+        OtpCodeInput(
+          onChanged: (value) => setState(() => _code = value),
+        ),
         SizedBox(height: 20.h),
         GestureDetector(
-          onTap: canResend ? _startCountdown : null,
+          onTap: canResend ? _resend : null,
           child: Text.rich(
             TextSpan(
               text: 'Kod gelmedi mi? ',
@@ -133,7 +177,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         ),
         const Spacer(),
         SizedBox(height: 20.h),
-        AuthPrimaryButton(label: 'Doğrula ve Devam Et', onPressed: _verify),
+        AuthPrimaryButton(
+          label: _isVerifying ? 'Doğrulanıyor...' : 'Doğrula ve Devam Et',
+          onPressed: (_isVerifying || _code.length != 6)
+              ? () {}
+              : () { _verify(); },
+        ),
       ],
     );
   }

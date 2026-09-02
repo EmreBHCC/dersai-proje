@@ -22,24 +22,36 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  void _goToVerification() {
+  Future<void> _goToVerification() async {
     final email = _emailController.text.trim();
-    ref
-        .read(userSessionProvider.notifier)
-        .signUp(fullName: _nameController.text, email: email);
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => EmailVerificationScreen(email: email)),
-    );
+
+    setState(() => _isLoading = true);
+    try {
+      await ref
+          .read(userSessionProvider.notifier)
+          .signUp(fullName: _nameController.text, email: email);
+
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => EmailVerificationScreen(email: email)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Kayıt başarısız: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -85,15 +97,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           highlighted: true,
           autofillHints: const [AutofillHints.email],
         ),
-        SizedBox(height: 16.h),
-        const AuthFieldLabel('Şifre oluştur'),
-        AuthTextField(
-          controller: _passwordController,
-          hintText: 'En az 8 karakter',
-          icon: Icons.lock_outline_rounded,
-          obscure: true,
-          autofillHints: const [AutofillHints.newPassword],
-        ),
         SizedBox(height: 10.h),
         Text.rich(
           TextSpan(
@@ -114,8 +117,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         const Spacer(),
         SizedBox(height: 20.h),
         AuthPrimaryButton(
-          label: 'Doğrulama Kodu Gönder',
-          onPressed: _goToVerification,
+          label: _isLoading ? 'Gönderiliyor...' : 'Doğrulama Kodu Gönder',
+          onPressed: _isLoading ? () {} : () { _goToVerification(); },
         ),
         SizedBox(height: 22.h),
         Center(

@@ -3,16 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/theme/app_colors.dart';
-import '../../../homepage/presentation/screens/home_screen.dart';
 import '../providers/user_session_provider.dart';
 import '../widgets/auth_brand_header.dart';
-import '../widgets/auth_divider.dart';
 import '../widgets/auth_field_label.dart';
 import '../widgets/auth_primary_button.dart';
 import '../widgets/auth_screen_scaffold.dart';
 import '../widgets/auth_text_field.dart';
-import '../widgets/social_auth_button.dart';
-import 'forgot_password_screen.dart';
+import 'email_verification_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -24,32 +21,39 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  void _goToHome() {
-    ref.read(userSessionProvider.notifier).logIn(email: _emailController.text);
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+  Future<void> _goToVerification() async {
+    final email = _emailController.text.trim();
+
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(userSessionProvider.notifier).logIn(email: email);
+
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => EmailVerificationScreen(email: email)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Giriş başarısız: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _goToSignup() {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const SignupScreen()));
-  }
-
-  void _goToForgotPassword() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()));
   }
 
   @override
@@ -84,42 +88,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           keyboardType: TextInputType.emailAddress,
           autofillHints: const [AutofillHints.email],
         ),
-        SizedBox(height: 16.h),
-        const AuthFieldLabel('Şifre'),
-        AuthTextField(
-          controller: _passwordController,
-          hintText: 'Şifreni gir',
-          icon: Icons.lock_outline_rounded,
-          obscure: true,
-          autofillHints: const [AutofillHints.password],
-        ),
-        SizedBox(height: 10.h),
-        Align(
-          alignment: Alignment.centerRight,
-          child: GestureDetector(
-            onTap: _goToForgotPassword,
-            behavior: HitTestBehavior.opaque,
-            child: Text(
-              'Şifremi unuttum',
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w500,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        ),
         const Spacer(),
         SizedBox(height: 20.h),
-        AuthPrimaryButton(label: 'Giriş Yap', onPressed: _goToHome),
-        SizedBox(height: 20.h),
-        const AuthDivider(),
-        SizedBox(height: 20.h),
-        SocialAuthButton(
-          icon: Icons.g_mobiledata_rounded,
-          iconSize: 26.sp,
-          label: 'Google ile devam et',
-          onPressed: () {},
+        AuthPrimaryButton(
+          label: _isLoading ? 'Gönderiliyor...' : 'Doğrulama Kodu Gönder',
+          onPressed: _isLoading ? () {} : () { _goToVerification(); },
         ),
         SizedBox(height: 22.h),
         Center(

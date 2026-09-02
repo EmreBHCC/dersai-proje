@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+git commit -m "Login, signup ve profil ekranlarini guncel renk paletine gore duzenle"import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_spacing.dart';
