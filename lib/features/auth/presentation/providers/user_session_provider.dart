@@ -77,7 +77,6 @@ class UserSessionNotifier extends Notifier<UserSession?> {
     state = null;
   }
 
-  /// "ece.yilmaz@mail.com" -> "Ece Yilmaz".
   static String _nameFromEmail(String email) {
     final local = email.trim().split('@').first;
     final words = local

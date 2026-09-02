@@ -1,11 +1,9 @@
-/// The signed-in user, as captured during login / sign-up.
 class UserSession {
   const UserSession({required this.fullName, required this.email});
 
   final String fullName;
   final String email;
 
-  /// First token of [fullName], used for the home-screen greeting.
   String get firstName {
     final parts = fullName
         .trim()

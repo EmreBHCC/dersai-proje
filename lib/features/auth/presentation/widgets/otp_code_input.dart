@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 
-/// Segmented verification-code input. Renders [length] boxes backed by a single
-/// hidden [TextField]; filled boxes get the primary border.
 class OtpCodeInput extends StatefulWidget {
   const OtpCodeInput({
     super.key,
@@ -95,15 +93,18 @@ class _OtpBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
+
     return Container(
       width: 38.w,
       height: 44.h,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(
-          color: filled ? AppColors.primary : AppColors.lightBorder,
+          color: filled ? theme.colorScheme.primary : appColors.border,
           width: filled ? 1 : 0.5,
         ),
       ),
@@ -112,7 +113,7 @@ class _OtpBox extends StatelessWidget {
         style: TextStyle(
           fontSize: 16.sp,
           fontWeight: FontWeight.w500,
-          color: AppColors.lightTextPrimary,
+          color: theme.colorScheme.onSurface,
         ),
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 import '../widgets/auth_back_button.dart';
 import '../widgets/auth_brand_header.dart';
 import '../widgets/auth_field_label.dart';
@@ -38,6 +38,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
+
     return AuthScreenScaffold(
       children: [
         const AuthBackButton(),
@@ -52,7 +55,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.lightTextPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 6.h),
@@ -61,7 +64,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 13.sp,
-            color: AppColors.lightTextSecondary,
+            color: appColors.textSecondary,
             height: 1.4,
           ),
         ),
@@ -89,16 +92,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Text.rich(
               TextSpan(
                 text: 'Şifreni hatırladın mı? ',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: AppColors.lightTextSecondary,
-                ),
+                style: TextStyle(fontSize: 12.sp, color: appColors.textSecondary),
                 children: [
                   TextSpan(
                     text: 'Giriş yap',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],
@@ -119,7 +119,7 @@ class _LockBadge extends StatelessWidget {
       height: 56.w,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Icon(Icons.lock_reset_rounded, size: 26.sp, color: Colors.white),

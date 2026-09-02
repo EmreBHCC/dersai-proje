@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 
-/// Outlined "continue with `provider`" button used for Google / Apple sign-in.
 class SocialAuthButton extends StatelessWidget {
   const SocialAuthButton({
     super.key,
@@ -21,6 +20,9 @@ class SocialAuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
+
     return GestureDetector(
       onTap: onPressed,
       behavior: HitTestBehavior.opaque,
@@ -28,9 +30,9 @@ class SocialAuthButton extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 12.h),
         decoration: BoxDecoration(
-          color: AppColors.lightSurface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.sm + 2),
-          border: Border.all(color: AppColors.lightBorder, width: 0.5),
+          border: Border.all(color: appColors.border, width: 0.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -38,14 +40,14 @@ class SocialAuthButton extends StatelessWidget {
             Icon(
               icon,
               size: iconSize ?? 16.sp,
-              color: AppColors.lightTextPrimary,
+              color: theme.colorScheme.onSurface,
             ),
             SizedBox(width: 8.w),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: AppColors.lightTextPrimary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ],

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
+import '../../../../app/theme/app_theme_extension.dart';
 
-/// Single-line input used across the auth screens: white surface, rounded
-/// border, a leading icon and — for passwords — a trailing show/hide toggle.
 class AuthTextField extends StatefulWidget {
   const AuthTextField({
     super.key,
@@ -22,14 +20,8 @@ class AuthTextField extends StatefulWidget {
   final IconData icon;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
-
-  /// Whether this is a password field (renders the eye toggle + obscures text).
   final bool obscure;
-
-  /// Draws the field with the primary-colored border and icon, matching the
-  /// "focused / active" field in the design.
   final bool highlighted;
-
   final Iterable<String>? autofillHints;
 
   @override
@@ -41,16 +33,18 @@ class _AuthTextFieldState extends State<AuthTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
     final borderColor = widget.highlighted
-        ? AppColors.primary
-        : AppColors.lightBorder;
+        ? theme.colorScheme.primary
+        : appColors.border;
     final iconColor = widget.highlighted
-        ? AppColors.primary
-        : AppColors.lightTextTertiary;
+        ? theme.colorScheme.primary
+        : appColors.textTertiary;
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.sm + 2),
         border: Border.all(
           color: borderColor,
@@ -70,9 +64,9 @@ class _AuthTextFieldState extends State<AuthTextField> {
               autofillHints: widget.autofillHints,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: AppColors.lightTextPrimary,
+                color: theme.colorScheme.onSurface,
               ),
-              cursorColor: AppColors.primary,
+              cursorColor: theme.colorScheme.primary,
               decoration: InputDecoration(
                 isCollapsed: true,
                 contentPadding: EdgeInsets.symmetric(vertical: 12.h),
@@ -80,7 +74,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
                 hintText: widget.hintText,
                 hintStyle: TextStyle(
                   fontSize: 14.sp,
-                  color: AppColors.lightTextTertiary,
+                  color: appColors.textTertiary,
                 ),
               ),
             ),
@@ -94,7 +88,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
                     ? Icons.visibility_outlined
                     : Icons.visibility_off_outlined,
                 size: 16.sp,
-                color: AppColors.lightTextTertiary,
+                color: appColors.textTertiary,
               ),
             ),
         ],
