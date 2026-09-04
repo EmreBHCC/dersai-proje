@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'routes/auth_gate.dart';
 import 'theme/app_theme.dart';
 
 class DersaiApp extends StatelessWidget {
@@ -19,7 +19,7 @@ class DersaiApp extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: ThemeMode.system,
-          home: const OnboardingScreen(),
+          home: const AuthGate(),
         );
       },
     );
