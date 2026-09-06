@@ -9,6 +9,7 @@ import '../providers/exams_providers.dart';
 import '../widgets/exam_card.dart';
 import '../widgets/exam_tab_toggle.dart';
 import 'exam_detail_screen.dart';
+import 'add_exam_screen.dart';
 
 class ExamsScreen extends ConsumerStatefulWidget {
   const ExamsScreen({super.key});
@@ -78,6 +79,14 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AddExamScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

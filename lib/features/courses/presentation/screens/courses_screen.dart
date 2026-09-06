@@ -11,7 +11,7 @@ import '../providers/courses_providers.dart';
 import '../widgets/course_list_tile.dart';
 import '../widgets/study_tip_card.dart';
 import 'course_detail_screen.dart';
-
+import 'add_course_screen.dart';
 class CoursesScreen extends ConsumerWidget {
   const CoursesScreen({super.key});
 
@@ -118,9 +118,17 @@ class CoursesScreen extends ConsumerWidget {
                   );
                 },
               ),
-            ),
+                        ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AddCourseScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
