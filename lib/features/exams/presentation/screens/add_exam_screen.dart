@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../app/theme/app_radius.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_text_styles.dart';
+import '../../../../app/theme/app_theme_extension.dart';
+import '../../../auth/presentation/widgets/auth_field_label.dart';
+import '../../../auth/presentation/widgets/auth_primary_button.dart';
+import '../../../auth/presentation/widgets/auth_text_field.dart';
 import '../../../courses/domain/models/course_model.dart';
 import '../../../courses/presentation/providers/add_course_providers.dart';
 import '../../domain/models/exam_model.dart';
 import '../providers/add_exam_providers.dart';
-
 class AddExamScreen extends ConsumerStatefulWidget {
   const AddExamScreen({super.key});
 
@@ -14,7 +21,7 @@ class AddExamScreen extends ConsumerStatefulWidget {
 }
 
 class _AddExamScreenState extends ConsumerState<AddExamScreen> {
-  final _formKey = GlobalKey<FormState>();
+  
   final _sinavAdiController = TextEditingController();
   final _sureController = TextEditingController();
   final _konumController = TextEditingController();
@@ -61,8 +68,16 @@ class _AddExamScreenState extends ConsumerState<AddExamScreen> {
     });
   }
 
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+   Future<void> _save() async {
+    if (_isSaving) return;
+
+    final sinavAdi = _sinavAdiController.text.trim();
+    if (sinavAdi.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sınav adı zorunlu')),
+      );
+      return;
+    }
     if (_selectedCourse == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen bir ders seç')),
@@ -84,7 +99,7 @@ class _AddExamScreenState extends ConsumerState<AddExamScreen> {
         ExamModel(
           userId: '',
           dersId: _selectedCourse!.id!,
-          sinavAdi: _sinavAdiController.text.trim(),
+          sinavAdi: sinavAdi,
           tarihSaat: _selectedDateTime!,
           sureDakika: int.tryParse(_sureController.text.trim()),
           konum: _konumController.text.trim(),
@@ -112,102 +127,119 @@ class _AddExamScreenState extends ConsumerState<AddExamScreen> {
     }
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
     final coursesAsync = ref.watch(myCoursesProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Yeni Sınav Ekle')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              coursesAsync.when(
-                data: (courses) {
-                  return DropdownButtonFormField<CourseModel>(
-                    initialValue: _selectedCourse,
-                    decoration: const InputDecoration(labelText: 'Ders'),
+        padding: EdgeInsets.all(AppSpacing.screenPadding),
+        child: ListView(
+          children: [
+            const AuthFieldLabel('Ders'),
+            coursesAsync.when(
+              data: (courses) => Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.sm + 2),
+                  border: Border.all(color: appColors.border, width: 0.5),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 14.w),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<CourseModel>(
+                    isExpanded: true,
+                    value: _selectedCourse,
+                    icon: Icon(Icons.keyboard_arrow_down_rounded, color: appColors.textTertiary),
+                    hint: Text('Ders seç', style: TextStyle(fontSize: 14.sp, color: appColors.textTertiary)),
                     items: courses
                         .map(
                           (course) => DropdownMenuItem(
                             value: course,
-                            child: Text(course.dersAdi),
+                            child: Text(course.dersAdi, style: TextStyle(fontSize: 14.sp)),
                           ),
                         )
                         .toList(),
-                    onChanged: (value) =>
-                        setState(() => _selectedCourse = value),
-                    validator: (value) =>
-                        value == null ? 'Ders seçimi zorunlu' : null,
-                  );
-                },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Dersler yüklenemedi: $e'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _sinavAdiController,
-                decoration: const InputDecoration(labelText: 'Sınav Adı'),
-                validator: (value) =>
-                    (value == null || value.trim().isEmpty)
-                        ? 'Sınav adı zorunlu'
-                        : null,
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: _pickDateTime,
-                child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Tarih ve Saat'),
-                  child: Text(
-                    _selectedDateTime == null
-                        ? 'Seçilmedi'
-                        : '${_selectedDateTime!.day}/${_selectedDateTime!.month}/${_selectedDateTime!.year} '
-                          '${_selectedDateTime!.hour.toString().padLeft(2, '0')}:${_selectedDateTime!.minute.toString().padLeft(2, '0')}',
+                    onChanged: (value) => setState(() => _selectedCourse = value),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _sureController,
-                decoration: const InputDecoration(labelText: 'Süre (dakika)'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _konumController,
-                decoration: const InputDecoration(labelText: 'Konum'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _aciklamaController,
-                decoration:
-                    const InputDecoration(labelText: 'Açıklama (Opsiyonel)'),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _hatirlatmaController,
-                decoration: const InputDecoration(
-                  labelText: 'Hatırlatma (dakika önce)',
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) =>
+                  Text('Dersler yüklenemedi: $e', style: AppTextStyles.body(appColors.textSecondary)),
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Sınav Adı'),
+            AuthTextField(
+              controller: _sinavAdiController,
+              hintText: 'Örn. Vize Sınavı',
+              icon: Icons.edit_note_rounded,
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Tarih ve Saat'),
+            InkWell(
+              onTap: _pickDateTime,
+              borderRadius: BorderRadius.circular(AppRadius.sm + 2),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.sm + 2),
+                  border: Border.all(color: appColors.border, width: 0.5),
                 ),
-                keyboardType: TextInputType.number,
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                child: Row(
+                  children: [
+                    Icon(Icons.event_outlined, size: 16.sp, color: appColors.textTertiary),
+                    SizedBox(width: 8.w),
+                    Text(
+                      _selectedDateTime == null
+                          ? 'Seçilmedi'
+                          : '${_selectedDateTime!.day}/${_selectedDateTime!.month}/${_selectedDateTime!.year} '
+                            '${_selectedDateTime!.hour.toString().padLeft(2, '0')}:${_selectedDateTime!.minute.toString().padLeft(2, '0')}',
+                      style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _isSaving ? null : _save,
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Kaydet'),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Süre (dakika)'),
+            AuthTextField(
+              controller: _sureController,
+              hintText: 'Örn. 60',
+              icon: Icons.timer_outlined,
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Konum'),
+            AuthTextField(
+              controller: _konumController,
+              hintText: 'Örn. B Blok 204',
+              icon: Icons.location_on_outlined,
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Açıklama (Opsiyonel)'),
+            AuthTextField(
+              controller: _aciklamaController,
+              hintText: 'Ek not ekle',
+              icon: Icons.notes_rounded,
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Hatırlatma (dakika önce)'),
+            AuthTextField(
+              controller: _hatirlatmaController,
+              hintText: 'Örn. 30',
+              icon: Icons.notifications_outlined,
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: AppSpacing.lg),
+            AuthPrimaryButton(
+              label: _isSaving ? 'Kaydediliyor...' : 'Kaydet',
+              onPressed: _save,
+            ),
+          ],
         ),
       ),
     );
