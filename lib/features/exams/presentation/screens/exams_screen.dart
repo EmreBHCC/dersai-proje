@@ -4,12 +4,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
+import '../../../courses/domain/models/course_model.dart';
+import '../../../courses/presentation/providers/add_course_providers.dart';
 import '../../domain/models/exam.dart';
-import '../providers/exams_providers.dart';
+import '../../domain/models/exam_model.dart';
+import '../providers/add_exam_providers.dart';
 import '../widgets/exam_card.dart';
 import '../widgets/exam_tab_toggle.dart';
 import 'exam_detail_screen.dart';
 import 'add_exam_screen.dart';
+
+Exam _toDisplayExam(
+  ExamModel model,
+  Map<String, CourseModel> coursesById,
+  AppThemeExtension appColors,
+) {
+  final course = coursesById[model.dersId];
+  final colorIndex = model.dersId.hashCode.abs() % appColors.courseColors.length;
+  final time =
+      '${model.tarihSaat.hour.toString().padLeft(2, '0')}:${model.tarihSaat.minute.toString().padLeft(2, '0')}';
+  final konum = model.konum;
+  final hoca = course?.dersHocasi;
+
+  return Exam(
+    id: model.id ?? '${model.dersId}-${model.tarihSaat.toIso8601String()}',
+    courseCode: '',
+    courseName: course?.dersAdi ?? 'Ders',
+    courseColor: appColors.courseColors[colorIndex],
+    date: model.tarihSaat,
+    timeRange: time,
+    location: (konum != null && konum.isNotEmpty) ? konum : 'Belirtilmedi',
+    instructor: (hoca != null && hoca.isNotEmpty) ? hoca : '',
+    examType: '',
+    weightPercent: 0,
+    description: model.aciklama ?? '',
+    studyPlanCompleted: 0,
+    studyPlanTotal: 0,
+  );
+}
 
 class ExamsScreen extends ConsumerStatefulWidget {
   const ExamsScreen({super.key});
@@ -30,10 +62,9 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
   @override
   Widget build(BuildContext context) {
     final appColors = context.appColors;
-    final upcomingExams = ref.watch(upcomingExamsProvider);
-    final pastExams = ref.watch(pastExamsProvider);
+    final examsAsync = ref.watch(myExamsProvider);
+    final coursesAsync = ref.watch(myCoursesProvider);
     final isUpcomingTab = _selectedTab == ExamListTab.upcoming;
-    final exams = isUpcomingTab ? upcomingExams : pastExams;
 
     return Scaffold(
       appBar: AppBar(
@@ -60,22 +91,68 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
               ),
             ),
             Expanded(
-              child: exams.isEmpty
-                  ? Center(
+              child: examsAsync.when(
+                data: (examModels) => coursesAsync.when(
+                  data: (courseModels) {
+                    final coursesById = <String, CourseModel>{
+                      for (final c in courseModels)
+                        if (c.id != null) c.id!: c,
+                    };
+                    final now = DateTime.now();
+                    final allExams = examModels
+                        .map((m) => _toDisplayExam(m, coursesById, appColors))
+                        .toList()
+                      ..sort((a, b) => a.date.compareTo(b.date));
+                    final upcomingExams =
+                        allExams.where((e) => !e.date.isBefore(now)).toList();
+                    final pastExams = allExams
+                        .where((e) => e.date.isBefore(now))
+                        .toList()
+                        .reversed
+                        .toList();
+                    final exams = isUpcomingTab ? upcomingExams : pastExams;
+
+                    return exams.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Gösterilecek sınav bulunamadı.',
+                              style: AppTextStyles.body(appColors.textSecondary),
+                            ),
+                          )
+                        : ListView(
+                            padding: EdgeInsets.fromLTRB(
+                              AppSpacing.screenPadding,
+                              0,
+                              AppSpacing.screenPadding,
+                              AppSpacing.xl,
+                            ),
+                            children: _buildList(exams, grouped: isUpcomingTab),
+                          );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.screenPadding),
                       child: Text(
-                        'Gösterilecek sınav bulunamadı.',
+                        'Dersler yüklenemedi: $error',
+                        textAlign: TextAlign.center,
                         style: AppTextStyles.body(appColors.textSecondary),
                       ),
-                    )
-                  : ListView(
-                      padding: EdgeInsets.fromLTRB(
-                        AppSpacing.screenPadding,
-                        0,
-                        AppSpacing.screenPadding,
-                        AppSpacing.xl,
-                      ),
-                      children: _buildList(exams, grouped: isUpcomingTab),
                     ),
+                  ),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSpacing.screenPadding),
+                    child: Text(
+                      'Sınavlar yüklenemedi: $error',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.body(appColors.textSecondary),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

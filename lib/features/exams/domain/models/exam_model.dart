@@ -25,7 +25,7 @@ class ExamModel {
 
   factory ExamModel.fromJson(Map<String, dynamic> json) {
     return ExamModel(
-      id: json['id'] as String?,
+      id: json['id']?.toString(),
       userId: json['user_id'] as String,
       dersId: json['ders_id'] as String,
       sinavAdi: json['sinav_adi'] as String,

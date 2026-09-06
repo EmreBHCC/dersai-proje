@@ -19,7 +19,7 @@ class CourseModel {
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
     return CourseModel(
-      id: json['id'] as String?,
+      id: json['id']?.toString(),
       userId: json['user_id'] as String,
       dersAdi: json['ders_adi'] as String,
       dersHocasi: json['ders_hocasi'] as String?,
