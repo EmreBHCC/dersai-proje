@@ -24,10 +24,24 @@ class UserSessionNotifier extends Notifier<UserSession?> {
     await _supabase.auth.signInWithOtp(email: email.trim());
   }
 
-  /// Login flow: sends a one-time code to an existing account's email.
+  /// Login flow: sends a one-time code to an existing account's email only.
+  /// If the email isn't registered, Supabase won't create a new account and
+  /// we surface a clear error instead of silently signing them up.
   Future<void> logIn({required String email}) async {
     _pendingFullName = null;
-    await _supabase.auth.signInWithOtp(email: email.trim());
+    try {
+      await _supabase.auth.signInWithOtp(
+        email: email.trim(),
+        shouldCreateUser: false,
+      );
+    } on AuthException catch (e) {
+      final message = e.message.toLowerCase();
+      if (message.contains('signups not allowed') ||
+          message.contains('user not found')) {
+        throw Exception('Bu e-posta adresine kayıtlı bir hesap bulunamadı.');
+      }
+      rethrow;
+    }
   }
 
   /// Called from the verification screen once the user enters the 6-digit
