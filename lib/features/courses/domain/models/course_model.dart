@@ -6,6 +6,8 @@ class CourseModel {
     this.dersHocasi,
     this.kredi,
     this.haftalikSaat,
+    this.gun,
+    this.derslik,
     this.createdAt,
   });
 
@@ -15,6 +17,8 @@ class CourseModel {
   final String? dersHocasi;
   final int? kredi;
   final int? haftalikSaat;
+  final String? gun;
+  final String? derslik;
   final DateTime? createdAt;
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +29,8 @@ class CourseModel {
       dersHocasi: json['ders_hocasi'] as String?,
       kredi: json['kredi'] as int?,
       haftalikSaat: json['haftalik_saat'] as int?,
+      gun: json['gun'] as String?,
+      derslik: json['derslik'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -36,8 +42,10 @@ class CourseModel {
       'ders_adi': dersAdi,
       if (dersHocasi != null && dersHocasi!.isNotEmpty)
         'ders_hocasi': dersHocasi,
-      if (kredi != null) 'kredi': kredi,
+           if (kredi != null) 'kredi': kredi,
       if (haftalikSaat != null) 'haftalik_saat': haftalikSaat,
+      if (gun != null && gun!.isNotEmpty) 'gun': gun,
+      if (derslik != null && derslik!.isNotEmpty) 'derslik': derslik,
     };
   }
 }
