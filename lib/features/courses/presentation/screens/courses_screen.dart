@@ -18,9 +18,11 @@ Course _toDisplayCourse(CourseModel model, AppThemeExtension appColors) {
   final key = model.id ?? model.dersAdi;
   final colorIndex = key.hashCode.abs() % appColors.courseColors.length;
   final hoca = model.dersHocasi;
-  final scheduleDay = model.haftalikSaat != null
-      ? 'Haftalık ${model.haftalikSaat} saat'
-      : 'Program eklenmedi';
+  final gun = model.gun;
+  final derslik = model.derslik;
+  final scheduleTime = model.haftalikSaat != null
+      ? '${model.haftalikSaat} saat/hafta'
+      : 'Belirtilmedi';
 
   return Course(
     id: model.id ?? key,
@@ -31,9 +33,9 @@ Course _toDisplayCourse(CourseModel model, AppThemeExtension appColors) {
     noteCount: 0,
     progress: 0,
     credit: model.kredi ?? 0,
-    scheduleDay: scheduleDay,
-    scheduleTime: '',
-    room: '',
+    scheduleDay: (gun != null && gun.isNotEmpty) ? gun : 'Belirtilmedi',
+    scheduleTime: scheduleTime,
+    room: (derslik != null && derslik.isNotEmpty) ? derslik : 'Belirtilmedi',
     description: 'Bu ders için henüz açıklama eklenmedi.',
     materials: const [],
     notes: const [],
