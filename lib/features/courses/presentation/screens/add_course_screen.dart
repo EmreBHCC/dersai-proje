@@ -21,14 +21,17 @@ class _AddCourseScreenState extends ConsumerState<AddCourseScreen> {
   final _dersHocasiController = TextEditingController();
   final _krediController = TextEditingController();
   final _haftalikSaatController = TextEditingController();
+  final _gunController = TextEditingController();
+  final _derslikController = TextEditingController();
   bool _isSaving = false;
-
   @override
   void dispose() {
     _dersAdiController.dispose();
     _dersHocasiController.dispose();
     _krediController.dispose();
     _haftalikSaatController.dispose();
+    _gunController.dispose();
+    _derslikController.dispose();
     super.dispose();
   }
 
@@ -54,6 +57,8 @@ class _AddCourseScreenState extends ConsumerState<AddCourseScreen> {
           dersHocasi: _dersHocasiController.text.trim(),
           kredi: int.tryParse(_krediController.text.trim()),
           haftalikSaat: int.tryParse(_haftalikSaatController.text.trim()),
+          gun: _gunController.text.trim(),
+          derslik: _derslikController.text.trim(),
         ),
       );
 
@@ -113,6 +118,20 @@ class _AddCourseScreenState extends ConsumerState<AddCourseScreen> {
               hintText: 'Örn. 3',
               icon: Icons.schedule_outlined,
               keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Gün'),
+            AuthTextField(
+              controller: _gunController,
+              hintText: 'Örn. Pazartesi',
+              icon: Icons.calendar_today_outlined,
+            ),
+            SizedBox(height: AppSpacing.md),
+            const AuthFieldLabel('Derslik'),
+            AuthTextField(
+              controller: _derslikController,
+              hintText: 'Örn. B Blok 204',
+              icon: Icons.location_on_outlined,
             ),
             SizedBox(height: AppSpacing.lg),
             AuthPrimaryButton(
