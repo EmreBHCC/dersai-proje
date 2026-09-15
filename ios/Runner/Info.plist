@@ -70,5 +70,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+		<key>NSMicrophoneUsageDescription</key>
+	<string>Sesli not özelliği için mikrofona erişim gerekiyor.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Konuşmanı yazıya çevirmek için konuşma tanıma izni gerekiyor.</string>
 </dict>
 </plist>

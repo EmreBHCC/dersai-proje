@@ -18,6 +18,7 @@ import '../widgets/homepage_header.dart';
 import '../widgets/quick_actions_row.dart';
 import '../widgets/recent_notes_section.dart';
 import '../widgets/todays_summary_card.dart';
+import '../../../notes/presentation/screens/voice_note_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -113,6 +114,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const ImageSourceScreen(),
+                        ),
+                      );
+                    } else if (action.id == 'voice') {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const VoiceNoteScreen(),
                         ),
                       );
                     }
