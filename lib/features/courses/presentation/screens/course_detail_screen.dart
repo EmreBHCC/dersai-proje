@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_spacing.dart';
+import '../../../notes/presentation/providers/note_providers.dart';
+import '../../../notes/presentation/screens/voice_note_screen.dart';
 import '../../domain/models/course.dart';
 import '../widgets/course_about_card.dart';
 import '../widgets/course_header_card.dart';
@@ -8,13 +11,15 @@ import '../widgets/course_materials_card.dart';
 import '../widgets/course_notes_section.dart';
 import '../widgets/course_stats_row.dart';
 
-class CourseDetailScreen extends StatelessWidget {
+class CourseDetailScreen extends ConsumerWidget {
   const CourseDetailScreen({super.key, required this.course});
 
   final Course course;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notesAsync = ref.watch(courseNotesProvider(course.id));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ders Detayı'),
@@ -37,7 +42,20 @@ class CourseDetailScreen extends StatelessWidget {
               SizedBox(height: AppSpacing.lg),
               CourseMaterialsCard(materials: course.materials),
               SizedBox(height: AppSpacing.lg),
-              CourseNotesSection(notes: course.notes, onAddNote: () {}),
+              notesAsync.when(
+                data: (notes) => CourseNotesSection(
+                  notes: notes,
+                  onAddNote: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => VoiceNoteScreen(courseId: course.id),
+                      ),
+                    );
+                  },
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Text('Notlar yüklenemedi: $error'),
+              ),
             ],
           ),
         ),
