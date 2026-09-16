@@ -7,14 +7,20 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
 
-class VoiceNoteScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+
+import '../../domain/models/note_model.dart';
+import '../providers/note_providers.dart';
+
+class VoiceNoteScreen extends ConsumerStatefulWidget {
   const VoiceNoteScreen({super.key});
 
   @override
-  State<VoiceNoteScreen> createState() => _VoiceNoteScreenState();
+  ConsumerState<VoiceNoteScreen> createState() => _VoiceNoteScreenState();
 }
 
-class _VoiceNoteScreenState extends State<VoiceNoteScreen> {
+class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _speechEnabled = false;
   bool _isListening = false;
@@ -25,7 +31,7 @@ class _VoiceNoteScreenState extends State<VoiceNoteScreen> {
     super.initState();
     _initSpeech();
   }
-  
+
   Future<void> _initSpeech() async {
     _speechEnabled = await _speech.initialize(
       onError: (error) {
@@ -67,7 +73,7 @@ class _VoiceNoteScreenState extends State<VoiceNoteScreen> {
     _speech.stop();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -139,11 +145,27 @@ class _VoiceNoteScreenState extends State<VoiceNoteScreen> {
                 child: ElevatedButton(
                   onPressed: _recognizedText.isEmpty
                       ? null
-                      : () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Not kaydedildi.')),
-                          );
-                          Navigator.of(context).pop();
+                      : () async {
+                          try {
+                            await ref
+                                .read(noteRepositoryProvider)
+                                .saveNote(
+                                  NoteModel(
+                                    content: _recognizedText,
+                                    type: 'voice_note',
+                                  ),
+                                );
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Not kaydedildi.')),
+                            );
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Kaydedilemedi: $e')),
+                            );
+                          }
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
