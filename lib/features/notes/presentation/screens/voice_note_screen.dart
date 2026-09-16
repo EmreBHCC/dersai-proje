@@ -9,12 +9,14 @@ import '../../../../app/theme/app_theme_extension.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
+import '../../../courses/presentation/providers/add_course_providers.dart';
 import '../../domain/models/note_model.dart';
 import '../providers/note_providers.dart';
 
 class VoiceNoteScreen extends ConsumerStatefulWidget {
-  const VoiceNoteScreen({super.key});
+  const VoiceNoteScreen({super.key, this.courseId});
+
+  final String? courseId;
 
   @override
   ConsumerState<VoiceNoteScreen> createState() => _VoiceNoteScreenState();
@@ -25,10 +27,13 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
   bool _speechEnabled = false;
   bool _isListening = false;
   String _recognizedText = '';
+  String? _selectedCourseId;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
+    _selectedCourseId = widget.courseId;
     _initSpeech();
   }
 
@@ -78,6 +83,7 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appColors = context.appColors;
+    final coursesAsync = ref.watch(myCoursesProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Sesli Not')),
@@ -87,6 +93,66 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (widget.courseId == null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: AppSpacing.lg),
+                  child: coursesAsync.when(
+                                        data: (courses) {
+                      final validCourses =
+                          courses.where((c) => c.id != null).toList();
+
+                      if (validCourses.isEmpty) {
+                        return Container(
+                          padding: EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            border: Border.all(color: appColors.border),
+                          ),
+                          child: Text(
+                            'Not eklemeden önce bir ders eklemelisin.',
+                            style: AppTextStyles.body(appColors.textSecondary),
+                          ),
+                        );
+                      }
+
+                      return Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          border: Border.all(color: appColors.border),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            hint: Text(
+                              'Hangi derse ait?',
+                              style: AppTextStyles.body(
+                                appColors.textSecondary,
+                              ),
+                            ),
+                            style: AppTextStyles.body(theme.colorScheme.onSurface),
+                            value: _selectedCourseId,
+                            items: validCourses.map((c) {
+                              return DropdownMenuItem<String>(
+                                value: c.id,
+                                child: Text(c.dersAdi),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() => _selectedCourseId = value);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    loading: () => const LinearProgressIndicator(),
+                    error: (error, _) => Text('Dersler yüklenemedi: $error'),
+                  ),
+                ),
               Text(
                 _isListening
                     ? 'Dinleniyor, konuşabilirsin...'
@@ -140,12 +206,16 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                 ),
               ),
               SizedBox(height: AppSpacing.lg),
-              SizedBox(
+                            SizedBox(
                 height: 52.h,
                 child: ElevatedButton(
-                  onPressed: _recognizedText.isEmpty
+                  onPressed:
+                      (_recognizedText.isEmpty ||
+                          _selectedCourseId == null ||
+                          _isSaving)
                       ? null
                       : () async {
+                          setState(() => _isSaving = true);
                           try {
                             await ref
                                 .read(noteRepositoryProvider)
@@ -153,8 +223,14 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                                   NoteModel(
                                     content: _recognizedText,
                                     type: 'voice_note',
+                                    subjectId: _selectedCourseId,
                                   ),
                                 );
+                            if (_selectedCourseId != null) {
+                              ref.invalidate(
+                                courseNotesProvider(_selectedCourseId!),
+                              );
+                            }
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Not kaydedildi.')),
@@ -165,6 +241,10 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Kaydedilemedi: $e')),
                             );
+                          } finally {
+                            if (context.mounted) {
+                              setState(() => _isSaving = false);
+                            }
                           }
                         },
                   style: ElevatedButton.styleFrom(
@@ -175,10 +255,19 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Bitti',
-                    style: AppTextStyles.buttonLabel(Colors.white),
-                  ),
+                  child: _isSaving
+                      ? SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'Bitti',
+                          style: AppTextStyles.buttonLabel(Colors.white),
+                        ),
                 ),
               ),
             ],

@@ -12,4 +12,13 @@ class NoteRepository {
     }
     await _supabase.from('notes').insert(note.toInsertJson(userId));
   }
+    Future<List<Map<String, dynamic>>> fetchNotesForCourse(String subjectId) async {
+    final response = await _supabase
+        .from('notes')
+        .select()
+        .eq('subject_id', subjectId)
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(response as List);
+  }
 }
