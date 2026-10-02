@@ -17,47 +17,53 @@ class NoteGenerationPrompt {
       'üzerinden döndür.';
 
   static const Map<String, dynamic> toolDefinition = {
-    'name': toolName,
-    'description': 'Taranan ders notundan düzenli ve detaylı bir not oluşturur.',
-    'input_schema': {
-      'type': 'object',
-      'properties': {
-        'title': {
-          'type': 'string',
-          'description': 'Notun kısa ve açıklayıcı başlığı.',
-        },
-        'summary': {
-          'type': 'string',
-          'description': 'Notun iki üç cümlelik genel özeti.',
-        },
-        'sections': {
-          'type': 'array',
-          'description': 'Konulara göre düzenlenmiş bölümler.',
-          'items': {
-            'type': 'object',
-            'properties': {
-              'heading': {'type': 'string'},
-              'explanation': {
-                'type': 'string',
-                'description': 'Konunun detaylı açıklaması.',
-              },
-              'examples': {
-                'type': 'array',
-                'description': 'Konuyu pekiştiren somut örnekler.',
-                'items': {'type': 'string'},
-              },
+    'type': 'function',
+    'function': {
+      'name': toolName,
+      'description':
+          'Taranan ders notundan düzenli ve detaylı bir not oluşturur.',
+      'parameters': noteSchema,
+    },
+  };
+
+  static const Map<String, dynamic> noteSchema = {
+    'type': 'object',
+    'properties': {
+      'title': {
+        'type': 'string',
+        'description': 'Notun kısa ve açıklayıcı başlığı.',
+      },
+      'summary': {
+        'type': 'string',
+        'description': 'Notun iki üç cümlelik genel özeti.',
+      },
+      'sections': {
+        'type': 'array',
+        'description': 'Konulara göre düzenlenmiş bölümler.',
+        'items': {
+          'type': 'object',
+          'properties': {
+            'heading': {'type': 'string'},
+            'explanation': {
+              'type': 'string',
+              'description': 'Konunun detaylı açıklaması.',
             },
-            'required': ['heading', 'explanation', 'examples'],
+            'examples': {
+              'type': 'array',
+              'description': 'Konuyu pekiştiren somut örnekler.',
+              'items': {'type': 'string'},
+            },
           },
-        },
-        'key_points': {
-          'type': 'array',
-          'description': 'Akılda tutulması gereken kısa maddeler.',
-          'items': {'type': 'string'},
+          'required': ['heading', 'explanation', 'examples'],
         },
       },
-      'required': ['title', 'summary', 'sections', 'key_points'],
+      'key_points': {
+        'type': 'array',
+        'description': 'Akılda tutulması gereken kısa maddeler.',
+        'items': {'type': 'string'},
+      },
     },
+    'required': ['title', 'summary', 'sections', 'key_points'],
   };
 
   static String userMessage({

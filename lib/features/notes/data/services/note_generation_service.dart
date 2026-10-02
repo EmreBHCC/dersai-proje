@@ -23,8 +23,8 @@ class NoteGenerationService {
   Future<GeneratedNote> generate(NoteGenerationRequest request) async {
     if (!LlmConfig.isConfigured) {
       throw const NoteGenerationException(
-        'LLM API anahtarı yapılandırılmamış. ANTHROPIC_API_KEY değerini '
-        '.env dosyasına ekle.',
+        'LLM API anahtarı yapılandırılmamış. AI_KEY değerini .env '
+        'dosyasına ekle.',
       );
     }
 
@@ -34,21 +34,16 @@ class NoteGenerationService {
     final body = jsonEncode({
       'model': LlmConfig.model,
       'max_tokens': LlmConfig.maxOutputTokens,
-      'system': NoteGenerationPrompt.system,
       'tools': [NoteGenerationPrompt.toolDefinition],
-      'tool_choice': {'type': 'tool', 'name': NoteGenerationPrompt.toolName},
+      'tool_choice': {
+        'type': 'function',
+        'function': {'name': NoteGenerationPrompt.toolName},
+      },
       'messages': [
+        {'role': 'system', 'content': NoteGenerationPrompt.system},
         {
           'role': 'user',
           'content': [
-            {
-              'type': 'image',
-              'source': {
-                'type': 'base64',
-                'media_type': 'image/jpeg',
-                'data': base64Encode(image.bytes),
-              },
-            },
             {
               'type': 'text',
               'text': NoteGenerationPrompt.userMessage(
@@ -56,6 +51,12 @@ class NoteGenerationService {
                 imageWidth: image.width,
                 imageHeight: image.height,
               ),
+            },
+            {
+              'type': 'image_url',
+              'image_url': {
+                'url': 'data:image/jpeg;base64,${base64Encode(image.bytes)}',
+              },
             },
           ],
         },
@@ -69,8 +70,8 @@ class NoteGenerationService {
             Uri.parse(LlmConfig.baseUrl),
             headers: {
               'content-type': 'application/json',
-              'x-api-key': LlmConfig.apiKey,
-              'anthropic-version': LlmConfig.apiVersion,
+              'authorization': 'Bearer ${LlmConfig.apiKey}',
+              'x-title': 'Dersai',
             },
             body: body,
           )
@@ -107,6 +108,7 @@ class NoteGenerationService {
 
     return switch (statusCode) {
       401 => 'LLM API anahtarı geçersiz.',
+      402 => 'LLM hesabında yeterli kredi yok.',
       429 => 'İstek limiti aşıldı. Biraz bekleyip tekrar dene.',
       >= 500 => 'LLM servisi şu an yanıt veremiyor. Tekrar dene.',
       _ => detail ?? 'Not oluşturulamadı (hata kodu $statusCode).',
@@ -114,23 +116,41 @@ class NoteGenerationService {
   }
 
   GeneratedNote _parseNote(Map<String, dynamic> body) {
-    final content = body['content'];
-    if (content is List<dynamic>) {
-      for (final block in content) {
-        if (block is Map<String, dynamic> &&
-            block['type'] == 'tool_use' &&
-            block['name'] == NoteGenerationPrompt.toolName &&
-            block['input'] is Map<String, dynamic>) {
-          final note = GeneratedNote.fromJson(
-            block['input'] as Map<String, dynamic>,
-          );
-          if (note.title.isNotEmpty && note.sections.isNotEmpty) return note;
-        }
-      }
+    final arguments = _toolArguments(body);
+    if (arguments != null) {
+      final note = GeneratedNote.fromJson(arguments);
+      if (note.title.isNotEmpty && note.sections.isNotEmpty) return note;
     }
     throw const NoteGenerationException(
       'Model beklenen formatta bir not üretemedi. Tekrar dene.',
     );
+  }
+
+  Map<String, dynamic>? _toolArguments(Map<String, dynamic> body) {
+    final choices = body['choices'];
+    if (choices is! List<dynamic> || choices.isEmpty) return null;
+    final first = choices.first;
+    if (first is! Map<String, dynamic>) return null;
+    final message = first['message'];
+    if (message is! Map<String, dynamic>) return null;
+
+    final toolCalls = message['tool_calls'];
+    if (toolCalls is! List<dynamic>) return null;
+    for (final call in toolCalls) {
+      if (call is! Map<String, dynamic>) continue;
+      final function = call['function'];
+      if (function is! Map<String, dynamic>) continue;
+      if (function['name'] != NoteGenerationPrompt.toolName) continue;
+      final arguments = function['arguments'];
+      if (arguments is! String) continue;
+      try {
+        final decoded = jsonDecode(arguments);
+        if (decoded is Map<String, dynamic>) return decoded;
+      } on FormatException {
+        return null;
+      }
+    }
+    return null;
   }
 }
 
