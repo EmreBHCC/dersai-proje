@@ -10,7 +10,7 @@ class LlmConfig {
 
   static const String model = String.fromEnvironment(
     'AI_MODEL',
-    defaultValue: 'google/gemini-2.5-flash',
+    defaultValue: 'google/gemma-4-31b-it:free',
   );
 
   static const int maxOutputTokens = 4096;
