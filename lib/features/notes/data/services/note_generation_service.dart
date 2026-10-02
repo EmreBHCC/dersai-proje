@@ -109,7 +109,9 @@ class NoteGenerationService {
     return switch (statusCode) {
       401 => 'LLM API anahtarı geçersiz.',
       402 => 'LLM hesabında yeterli kredi yok.',
-      429 => 'İstek limiti aşıldı. Biraz bekleyip tekrar dene.',
+      429 =>
+        'İstek limiti aşıldı. Biraz bekleyip tekrar dene.'
+            '${detail == null ? '' : '\n\n$detail'}',
       >= 500 => 'LLM servisi şu an yanıt veremiyor. Tekrar dene.',
       _ => detail ?? 'Not oluşturulamadı (hata kodu $statusCode).',
     };
