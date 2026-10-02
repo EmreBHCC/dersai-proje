@@ -32,7 +32,7 @@ class NoteGenerationService {
     final image = await compute(_prepareImage, sourceBytes);
 
     final body = jsonEncode({
-      'models': LlmConfig.models,
+      'model': LlmConfig.model,
       'max_tokens': LlmConfig.maxOutputTokens,
       'tools': [NoteGenerationPrompt.toolDefinition],
       'tool_choice': {
@@ -71,7 +71,6 @@ class NoteGenerationService {
             headers: {
               'content-type': 'application/json',
               'authorization': 'Bearer ${LlmConfig.apiKey}',
-              'x-title': 'Dersai',
             },
             body: body,
           )
