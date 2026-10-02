@@ -32,7 +32,7 @@ class NoteGenerationService {
     final image = await compute(_prepareImage, sourceBytes);
 
     final body = jsonEncode({
-      'model': LlmConfig.model,
+      'models': LlmConfig.models,
       'max_tokens': LlmConfig.maxOutputTokens,
       'tools': [NoteGenerationPrompt.toolDefinition],
       'tool_choice': {

@@ -13,6 +13,16 @@ class LlmConfig {
     defaultValue: 'google/gemma-4-31b-it:free',
   );
 
+  static const List<String> fallbackModels = [
+    'qwen/qwen3.8-27b:free',
+    'google/gemma-4-26b-a4b-it:free',
+  ];
+
+  static List<String> get models => [
+    model,
+    ...fallbackModels.where((fallback) => fallback != model),
+  ];
+
   static const int maxOutputTokens = 4096;
 
   static const Duration requestTimeout = Duration(seconds: 90);
