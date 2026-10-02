@@ -9,7 +9,8 @@ import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
-import '../../../notes/presentation/screens/processed_text_screen.dart';
+import '../../../notes/domain/models/note_generation_request.dart';
+import '../../../notes/presentation/screens/generated_note_screen.dart';
 import '../../domain/models/detected_object.dart';
 import '../providers/detection_providers.dart';
 import '../widgets/detection_painter.dart';
@@ -167,7 +168,14 @@ class _DetectionResultScreenState extends ConsumerState<DetectionResultScreen> {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProcessedTextScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => GeneratedNoteScreen(
+                      request: NoteGenerationRequest(
+                        imageFile: widget.imageFile,
+                        detections: detections,
+                      ),
+                    ),
+                  ),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -182,7 +190,7 @@ class _DetectionResultScreenState extends ConsumerState<DetectionResultScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'İşlenmiş Metni Kaydet',
+                    'Not Oluştur',
                     style: AppTextStyles.buttonLabel(Colors.white),
                   ),
                   SizedBox(width: AppSpacing.xs),
