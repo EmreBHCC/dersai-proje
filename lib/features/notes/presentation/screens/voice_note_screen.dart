@@ -22,18 +22,24 @@ class VoiceNoteScreen extends ConsumerStatefulWidget {
   ConsumerState<VoiceNoteScreen> createState() => _VoiceNoteScreenState();
 }
 
-class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
+class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen>
+  with SingleTickerProviderStateMixin {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _speechEnabled = false;
   bool _isListening = false;
   String _recognizedText = '';
   String? _selectedCourseId;
   bool _isSaving = false;
+  late final AnimationController _pulseController;
 
   @override
   void initState() {
     super.initState();
     _selectedCourseId = widget.courseId;
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
     _initSpeech();
   }
 
@@ -76,6 +82,7 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
   @override
   void dispose() {
     _speech.stop();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -97,7 +104,7 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                 Padding(
                   padding: EdgeInsets.only(bottom: AppSpacing.lg),
                   child: coursesAsync.when(
-                                        data: (courses) {
+                    data: (courses) {
                       final validCourses =
                           courses.where((c) => c.id != null).toList();
 
@@ -134,7 +141,9 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                                 appColors.textSecondary,
                               ),
                             ),
-                            style: AppTextStyles.body(theme.colorScheme.onSurface),
+                            style: AppTextStyles.body(
+                              theme.colorScheme.onSurface,
+                            ),
                             value: _selectedCourseId,
                             items: validCourses.map((c) {
                               return DropdownMenuItem<String>(
@@ -161,23 +170,83 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                 style: AppTextStyles.body(appColors.textSecondary),
               ),
               SizedBox(height: AppSpacing.xl),
-              Center(
-                child: GestureDetector(
-                  onTap: _isListening ? _stopListening : _startListening,
-                  child: Container(
-                    width: 96.w,
-                    height: 96.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _isListening
-                          ? Colors.redAccent
-                          : theme.colorScheme.primary,
-                    ),
-                    child: Icon(
-                      _isListening ? Icons.stop_rounded : Icons.mic_rounded,
-                      color: Colors.white,
-                      size: 40.sp,
-                    ),
+                            Center(
+                child: SizedBox(
+                  width: 160.w,
+                  height: 160.w,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (_isListening)
+                        AnimatedBuilder(
+                          animation: _pulseController,
+                          builder: (context, _) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [0.0, 0.32, 0.64].map((delay) {
+                                final t =
+                                    (_pulseController.value + delay) % 1.0;
+                                double scale;
+                                double opacity;
+                                if (t <= 0.7) {
+                                  final progress = t / 0.7;
+                                  scale = 0.75 + 0.9 * progress;
+                                  opacity = 0.5 * (1 - progress);
+                                } else {
+                                  scale = 1.65;
+                                  opacity = 0;
+                                }
+                                return Transform.scale(
+                                  scale: scale,
+                                  child: Container(
+                                    width: 96.w,
+                                    height: 96.w,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                        border: Border.all(
+                                        color: Colors.redAccent
+                                            .withValues(alpha: opacity),
+                                        width: 2,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            );
+                          },
+                        ),
+                      GestureDetector(
+                        onTap:
+                            _isListening ? _stopListening : _startListening,
+                        child: Container(
+                          width: 96.w,
+                          height: 96.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _isListening
+                                ? Colors.redAccent
+                                : theme.colorScheme.primary,
+                            boxShadow: _isListening
+                                ? [
+                                       BoxShadow(
+                                      color: Colors.redAccent
+                                          .withValues(alpha: 0.35),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Icon(
+                            _isListening
+                                ? Icons.stop_rounded
+                                : Icons.mic_rounded,
+                            color: Colors.white,
+                            size: 40.sp,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -206,7 +275,7 @@ class _VoiceNoteScreenState extends ConsumerState<VoiceNoteScreen> {
                 ),
               ),
               SizedBox(height: AppSpacing.lg),
-                            SizedBox(
+              SizedBox(
                 height: 52.h,
                 child: ElevatedButton(
                   onPressed:
