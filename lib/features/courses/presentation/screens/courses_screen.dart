@@ -13,6 +13,7 @@ import '../widgets/course_list_tile.dart';
 import '../widgets/study_tip_card.dart';
 import 'course_detail_screen.dart';
 import 'add_course_screen.dart';
+import '../../../notes/presentation/screens/voice_note_screen.dart';
 
 Course _toDisplayCourse(CourseModel model, AppThemeExtension appColors) {
   final key = model.id ?? model.dersAdi;
@@ -29,7 +30,9 @@ Course _toDisplayCourse(CourseModel model, AppThemeExtension appColors) {
     name: model.dersAdi,
     icon: Icons.menu_book_rounded,
     color: appColors.courseColors[colorIndex],
-    instructor: (hoca != null && hoca.isNotEmpty) ? hoca : 'Öğretim üyesi eklenmedi',
+    instructor: (hoca != null && hoca.isNotEmpty)
+        ? hoca
+        : 'Öğretim üyesi eklenmedi',
     noteCount: 0,
     progress: 0,
     credit: model.kredi ?? 0,
@@ -39,6 +42,62 @@ Course _toDisplayCourse(CourseModel model, AppThemeExtension appColors) {
     description: 'Bu ders için henüz açıklama eklenmedi.',
     materials: const [],
     notes: const [],
+  );
+}
+
+void _showCoursePicker(BuildContext context, List<Course> courses) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (context) {
+      return SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppRadius.lg),
+            ),
+          ),
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screenPadding,
+                ),
+                child: Text(
+                  'Hangi derse not eklemek istiyorsun?',
+                  style: AppTextStyles.cardTitle(
+                    Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              SizedBox(height: AppSpacing.sm),
+              ...courses.map((course) {
+                return ListTile(
+                  leading: Icon(course.icon, color: course.color),
+                  title: Text(
+                    course.name,
+                    style: AppTextStyles.body(
+                      Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => VoiceNoteScreen(courseId: course.id),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      );
+    },
   );
 }
 
@@ -61,7 +120,10 @@ class CoursesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Derslerim'),
         actions: [
-          IconButton(icon: const Icon(Icons.receipt_long_outlined), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.receipt_long_outlined),
+            onPressed: () {},
+          ),
         ],
       ),
       body: SafeArea(
@@ -125,8 +187,9 @@ class CoursesScreen extends ConsumerWidget {
             Expanded(
               child: coursesAsync.when(
                 data: (models) {
-                  final courses =
-                      models.map((m) => _toDisplayCourse(m, appColors)).toList();
+                  final courses = models
+                      .map((m) => _toDisplayCourse(m, appColors))
+                      .toList();
 
                   return ListView.separated(
                     padding: EdgeInsets.fromLTRB(
@@ -141,8 +204,10 @@ class CoursesScreen extends ConsumerWidget {
                       if (index == courses.length) {
                         return Padding(
                           padding: EdgeInsets.only(top: AppSpacing.sm),
-                          child: const StudyTipCard(
-                            message: 'Notlarını düzenli tut,\nbaşarını bir adım öne taşı!',
+                          child: StudyTipCard(
+                            message:
+                                'Notlarını düzenli tut,\nbaşarını bir adım öne taşı!',
+                            onTap: () => _showCoursePicker(context, courses),
                           ),
                         );
                       }
@@ -172,9 +237,9 @@ class CoursesScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AddCourseScreen()),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const AddCourseScreen()));
         },
         child: const Icon(Icons.add),
       ),
