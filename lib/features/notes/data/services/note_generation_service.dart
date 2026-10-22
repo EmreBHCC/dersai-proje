@@ -1,24 +1,19 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img;
 
 import '../../../../core/config/llm_config.dart';
 import '../../domain/models/generated_note.dart';
 import '../../domain/models/note_generation_exception.dart';
 import '../../domain/models/note_generation_request.dart';
 import 'note_generation_prompt.dart';
-
-typedef _PreparedImage = ({Uint8List bytes, int width, int height});
+import 'ocr_service.dart';
 
 class NoteGenerationService {
-  NoteGenerationService(this._client);
+  NoteGenerationService(this._client) : _ocrService = OcrService();
 
   final http.Client _client;
-
-  static const int _maxImageSide = 1568;
-  static const int _jpegQuality = 85;
+  final OcrService _ocrService;
 
   Future<GeneratedNote> generate(NoteGenerationRequest request) async {
     if (!LlmConfig.isConfigured) {
@@ -28,8 +23,13 @@ class NoteGenerationService {
       );
     }
 
-    final sourceBytes = await request.imageFile.readAsBytes();
-    final image = await compute(_prepareImage, sourceBytes);
+    final ocrText = await _ocrService.recognizeText(request.imageFile);
+    if (ocrText.trim().isEmpty) {
+      throw const NoteGenerationException(
+        'Görselde okunabilir bir yazı bulunamadı. Daha net bir fotoğraf '
+        'çekmeyi dene.',
+      );
+    }
 
     final body = jsonEncode({
       'model': LlmConfig.model,
@@ -40,25 +40,10 @@ class NoteGenerationService {
         'function': {'name': NoteGenerationPrompt.toolName},
       },
       'messages': [
-        {'role': 'system', 'content': NoteGenerationPrompt.system},
+        {'role': 'system', 'content': NoteGenerationPrompt.systemFromOcr},
         {
           'role': 'user',
-          'content': [
-            {
-              'type': 'text',
-              'text': NoteGenerationPrompt.userMessage(
-                detections: request.detections,
-                imageWidth: image.width,
-                imageHeight: image.height,
-              ),
-            },
-            {
-              'type': 'image_url',
-              'image_url': {
-                'url': 'data:image/jpeg;base64,${base64Encode(image.bytes)}',
-              },
-            },
-          ],
+          'content': NoteGenerationPrompt.userMessageFromOcr(ocrText),
         },
       ],
     });
@@ -153,33 +138,4 @@ class NoteGenerationService {
     }
     return null;
   }
-}
-
-_PreparedImage _prepareImage(Uint8List sourceBytes) {
-  final decoded = img.decodeImage(sourceBytes);
-  if (decoded == null) {
-    throw const NoteGenerationException('Görsel çözümlenemedi.');
-  }
-
-  final oriented = img.bakeOrientation(decoded);
-  final longestSide = oriented.width > oriented.height
-      ? oriented.width
-      : oriented.height;
-  final resized = longestSide > NoteGenerationService._maxImageSide
-      ? img.copyResize(
-          oriented,
-          width: oriented.width >= oriented.height
-              ? NoteGenerationService._maxImageSide
-              : null,
-          height: oriented.height > oriented.width
-              ? NoteGenerationService._maxImageSide
-              : null,
-          interpolation: img.Interpolation.average,
-        )
-      : oriented;
-
-  final bytes = Uint8List.fromList(
-    img.encodeJpg(resized, quality: NoteGenerationService._jpegQuality),
-  );
-  return (bytes: bytes, width: resized.width, height: resized.height);
 }

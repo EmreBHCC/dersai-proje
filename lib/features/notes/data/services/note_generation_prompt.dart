@@ -16,6 +16,16 @@ class NoteGenerationPrompt {
       'yaz. Tüm çıktıyı Türkçe üret ve sonucu yalnızca $toolName aracı '
       'üzerinden döndür.';
 
+  static const String systemFromOcr =
+      'Sen öğrencilere yardım eden bir ders notu asistanısın. Sana, bir ders '
+      'notu fotoğrafından optik karakter tanıma (OCR) ile çıkarılmış metin '
+      'verilir. Bu metin yazım hataları veya eksik karakterler içerebilir. '
+      'İçeriği oku, konularına göre düzenle, her konuyu anlaşılır şekilde '
+      'detaylandır ve somut örneklerle pekiştir. Metinde olmayan bilgiyi '
+      'uydurma; yalnızca metindeki konuyu açıkla ve genişlet. Formülleri '
+      'sade metin olarak yaz. Tüm çıktıyı Türkçe üret ve sonucu yalnızca '
+      '$toolName aracı üzerinden döndür.';
+
   static const Map<String, dynamic> toolDefinition = {
     'type': 'function',
     'function': {
@@ -87,5 +97,10 @@ class NoteGenerationPrompt {
         : 'Tespit edilen bölgeler (görsele göre yüzde konumları):\n$regions';
 
     return 'Bu ders notu görselinden düzenli bir not oluştur.\n\n$regionSection';
+  }
+
+  static String userMessageFromOcr(String ocrText) {
+    return 'Bu ders notundan düzenli bir not oluştur. Aşağıdaki metin, not '
+        'görselinden OCR ile çıkarılmıştır:\n\n$ocrText';
   }
 }
