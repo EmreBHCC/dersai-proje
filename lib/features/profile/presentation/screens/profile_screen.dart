@@ -9,6 +9,7 @@ import '../../../auth/presentation/providers/user_session_provider.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../courses/presentation/screens/courses_screen.dart';
 import '../../../exams/presentation/screens/exams_screen.dart';
+import '../../data/mock/profile_mock_data.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/premium_banner.dart';
 import '../widgets/profile_badges_row.dart';
@@ -77,83 +78,99 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(userProfileProvider);
-    final weeklyStreak = ref.watch(weeklyStreakProvider);
-    final subjects = ref.watch(subjectDistributionProvider);
+    final profileAsync = ref.watch(userProfileProvider);
+    final weeklyStreakAsync = ref.watch(weeklyStreakProvider);
+    final subjectsAsync = ref.watch(subjectDistributionProvider);
     final badges = ref.watch(profileBadgesProvider);
     final activities = ref.watch(recentActivityProvider);
     final settings = ref.watch(settingsEntriesProvider);
 
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.primary,
-      body: Column(
-        children: [
-          ProfileHeader(profile: profile),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.lg),
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.lg),
-                ),
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    AppSpacing.lg,
-                    AppSpacing.screenPadding,
-                    AppSpacing.xl,
+    return profileAsync.when(
+      loading: () => Scaffold(
+        backgroundColor: theme.colorScheme.primary,
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        backgroundColor: theme.colorScheme.primary,
+        body: Center(child: Text('Bir hata oluştu: $error')),
+      ),
+      data: (profile) {
+        final subjects = subjectsAsync.value ?? [];
+        final weeklyStreak =
+            weeklyStreakAsync.value ?? ProfileMockData.weeklyStreak;
+
+        return Scaffold(
+          backgroundColor: theme.colorScheme.primary,
+          body: Column(
+            children: [
+              ProfileHeader(profile: profile),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.lg),
+                    ),
                   ),
-                  children: [
-                    ProfileSectionLabel(
-                      title: 'Bu Hafta',
-                      actionLabel: 'Geçmiş →',
-                      onActionTap: () {},
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.lg),
                     ),
-                    SizedBox(height: AppSpacing.sm + 2.h),
-                    WeeklyStreakCard(streak: weeklyStreak),
-                    SizedBox(height: AppSpacing.lg),
-                    const ProfileSectionLabel(title: 'Derslere Göre Dağılım'),
-                    SizedBox(height: AppSpacing.sm + 2.h),
-                    SubjectDistributionCard(subjects: subjects),
-                    SizedBox(height: AppSpacing.lg),
-                    ProfileSectionLabel(
-                      title: 'Rozetler',
-                      actionLabel: 'Tümü →',
-                      onActionTap: () {},
+                    child: ListView(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.screenPadding,
+                        AppSpacing.lg,
+                        AppSpacing.screenPadding,
+                        AppSpacing.xl,
+                      ),
+                      children: [
+                        ProfileSectionLabel(
+                          title: 'Bu Hafta',
+                          actionLabel: 'Geçmiş →',
+                          onActionTap: () {},
+                        ),
+                        SizedBox(height: AppSpacing.sm + 2.h),
+                        WeeklyStreakCard(streak: weeklyStreak),
+                        SizedBox(height: AppSpacing.lg),
+                        const ProfileSectionLabel(title: 'Derslere Göre Dağılım'),
+                        SizedBox(height: AppSpacing.sm + 2.h),
+                        SubjectDistributionCard(subjects: subjects),
+                        SizedBox(height: AppSpacing.lg),
+                        ProfileSectionLabel(
+                          title: 'Rozetler',
+                          actionLabel: 'Tümü →',
+                          onActionTap: () {},
+                        ),
+                        SizedBox(height: AppSpacing.sm + 2.h),
+                        ProfileBadgesRow(badges: badges),
+                        SizedBox(height: AppSpacing.lg),
+                        const ProfileSectionLabel(title: 'Son Etkinlik'),
+                        SizedBox(height: AppSpacing.sm + 2.h),
+                        RecentActivityCard(activities: activities),
+                        SizedBox(height: AppSpacing.lg),
+                        const ProfileSectionLabel(title: 'Ayarlar'),
+                        SizedBox(height: AppSpacing.sm + 2.h),
+                        ProfileSettingsCard(entries: settings),
+                        SizedBox(height: AppSpacing.md),
+                        PremiumBanner(onTap: () {}),
+                        SizedBox(height: AppSpacing.md),
+                        ProfileLogoutButton(onTap: () => _logout(context, ref)),
+                      ],
                     ),
-                    SizedBox(height: AppSpacing.sm + 2.h),
-                    ProfileBadgesRow(badges: badges),
-                    SizedBox(height: AppSpacing.lg),
-                    const ProfileSectionLabel(title: 'Son Etkinlik'),
-                    SizedBox(height: AppSpacing.sm + 2.h),
-                    RecentActivityCard(activities: activities),
-                    SizedBox(height: AppSpacing.lg),
-                    const ProfileSectionLabel(title: 'Ayarlar'),
-                    SizedBox(height: AppSpacing.sm + 2.h),
-                    ProfileSettingsCard(entries: settings),
-                    SizedBox(height: AppSpacing.md),
-                    PremiumBanner(onTap: () {}),
-                    SizedBox(height: AppSpacing.md),
-                    ProfileLogoutButton(onTap: () => _logout(context, ref)),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: AppBottomNavigationBar(
-        items: _navItems,
-        currentIndex: _navIndex,
-        onItemSelected: (index) => _onNavSelected(context, index),
-      ),
+          bottomNavigationBar: AppBottomNavigationBar(
+            items: _navItems,
+            currentIndex: _navIndex,
+            onItemSelected: (index) => _onNavSelected(context, index),
+          ),
+        );
+      },
     );
   }
 }
