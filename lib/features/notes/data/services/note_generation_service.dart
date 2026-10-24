@@ -34,16 +34,12 @@ class NoteGenerationService {
     final body = jsonEncode({
       'model': LlmConfig.model,
       'max_tokens': LlmConfig.maxOutputTokens,
-      'tools': [NoteGenerationPrompt.toolDefinition],
-      'tool_choice': {
-        'type': 'function',
-        'function': {'name': NoteGenerationPrompt.toolName},
-      },
+      'response_format': {'type': 'json_object'},
       'messages': [
-        {'role': 'system', 'content': NoteGenerationPrompt.systemFromOcr},
+        {'role': 'system', 'content': NoteGenerationPrompt.system},
         {
           'role': 'user',
-          'content': NoteGenerationPrompt.userMessageFromOcr(ocrText),
+          'content': NoteGenerationPrompt.userMessage(ocrText),
         },
       ],
     });
@@ -102,9 +98,9 @@ class NoteGenerationService {
   }
 
   GeneratedNote _parseNote(Map<String, dynamic> body) {
-    final arguments = _toolArguments(body);
-    if (arguments != null) {
-      final note = GeneratedNote.fromJson(arguments);
+    final content = _messageContent(body);
+    if (content != null) {
+      final note = GeneratedNote.fromJson(content);
       if (note.title.isNotEmpty && note.sections.isNotEmpty) return note;
     }
     throw const NoteGenerationException(
@@ -112,29 +108,29 @@ class NoteGenerationService {
     );
   }
 
-  Map<String, dynamic>? _toolArguments(Map<String, dynamic> body) {
+  Map<String, dynamic>? _messageContent(Map<String, dynamic> body) {
     final choices = body['choices'];
     if (choices is! List<dynamic> || choices.isEmpty) return null;
     final first = choices.first;
     if (first is! Map<String, dynamic>) return null;
     final message = first['message'];
     if (message is! Map<String, dynamic>) return null;
+    final content = message['content'];
+    if (content is! String) return null;
 
-    final toolCalls = message['tool_calls'];
-    if (toolCalls is! List<dynamic>) return null;
-    for (final call in toolCalls) {
-      if (call is! Map<String, dynamic>) continue;
-      final function = call['function'];
-      if (function is! Map<String, dynamic>) continue;
-      if (function['name'] != NoteGenerationPrompt.toolName) continue;
-      final arguments = function['arguments'];
-      if (arguments is! String) continue;
-      try {
-        final decoded = jsonDecode(arguments);
-        if (decoded is Map<String, dynamic>) return decoded;
-      } on FormatException {
-        return null;
-      }
+    final withoutReasoning = content.replaceAll(
+      RegExp(r'<think>.*?</think>', dotAll: true),
+      '',
+    );
+    final start = withoutReasoning.indexOf('{');
+    final end = withoutReasoning.lastIndexOf('}');
+    if (start == -1 || end <= start) return null;
+
+    try {
+      final decoded = jsonDecode(withoutReasoning.substring(start, end + 1));
+      if (decoded is Map<String, dynamic>) return decoded;
+    } on FormatException {
+      return null;
     }
     return null;
   }
