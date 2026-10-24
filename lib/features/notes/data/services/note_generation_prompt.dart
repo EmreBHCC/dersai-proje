@@ -1,30 +1,7 @@
-import '../../../detection/domain/models/detected_object.dart';
+import 'dart:convert';
 
 class NoteGenerationPrompt {
   const NoteGenerationPrompt._();
-
-  static const String toolName = 'create_note';
-
-  static const String system =
-      'Sen öğrencilere yardım eden bir ders notu asistanısın. Sana bir ders '
-      'notu görseli ve bu görselde bir nesne tespit modeliyle bulunmuş '
-      'bölgeler verilir. Bölgeler "text" (yazı), "math" (formül) ve "image" '
-      '(şekil veya çizim) sınıflarından oluşur. Görseldeki içeriği oku, '
-      'konularına göre düzenle, her konuyu anlaşılır şekilde detaylandır ve '
-      'somut örneklerle pekiştir. Görselde olmayan bilgiyi uydurma; yalnızca '
-      'görseldeki konuyu açıkla ve genişlet. Formülleri sade metin olarak '
-      'yaz. Tüm çıktıyı Türkçe üret ve sonucu yalnızca $toolName aracı '
-      'üzerinden döndür.';
-
-  static const Map<String, dynamic> toolDefinition = {
-    'type': 'function',
-    'function': {
-      'name': toolName,
-      'description':
-          'Taranan ders notundan düzenli ve detaylı bir not oluşturur.',
-      'parameters': noteSchema,
-    },
-  };
 
   static const Map<String, dynamic> noteSchema = {
     'type': 'object',
@@ -66,26 +43,20 @@ class NoteGenerationPrompt {
     'required': ['title', 'summary', 'sections', 'key_points'],
   };
 
-  static String userMessage({
-    required List<DetectedObject> detections,
-    required int imageWidth,
-    required int imageHeight,
-  }) {
-    final regions = detections.map((detection) {
-      final box = detection.boundingBox;
-      final left = (box.left / imageWidth * 100).round();
-      final top = (box.top / imageHeight * 100).round();
-      final right = (box.right / imageWidth * 100).round();
-      final bottom = (box.bottom / imageHeight * 100).round();
-      final confidence = (detection.confidence * 100).round();
-      return '- ${detection.className} (güven %$confidence): '
-          'sol %$left, üst %$top, sağ %$right, alt %$bottom';
-    }).join('\n');
+  static final String system =
+      'Sen öğrencilere yardım eden bir ders notu asistanısın. Sana, bir ders '
+      'notu fotoğrafından optik karakter tanıma (OCR) ile çıkarılmış metin '
+      'verilir. Bu metin yazım hataları veya eksik karakterler içerebilir. '
+      'İçeriği oku, konularına göre düzenle, her konuyu anlaşılır şekilde '
+      'detaylandır ve somut örneklerle pekiştir. Metinde olmayan bilgiyi '
+      'uydurma; yalnızca metindeki konuyu açıkla ve genişlet. Formülleri '
+      'sade metin olarak yaz. Tüm çıktıyı Türkçe üret. Hiçbir araç çağırma. '
+      'Yanıtın yalnızca aşağıdaki JSON şemasına uyan tek bir JSON nesnesi '
+      'olsun, öncesinde veya sonrasında hiçbir açıklama yazma.\n\n'
+      '${jsonEncode(noteSchema)}';
 
-    final regionSection = detections.isEmpty
-        ? 'Model herhangi bir bölge tespit etmedi, görseli bütünüyle değerlendir.'
-        : 'Tespit edilen bölgeler (görsele göre yüzde konumları):\n$regions';
-
-    return 'Bu ders notu görselinden düzenli bir not oluştur.\n\n$regionSection';
+  static String userMessage(String ocrText) {
+    return 'Bu ders notundan düzenli bir not oluştur. Aşağıdaki metin, not '
+        'görselinden OCR ile çıkarılmıştır:\n\n$ocrText';
   }
 }

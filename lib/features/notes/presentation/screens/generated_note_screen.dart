@@ -57,7 +57,7 @@ class _GeneratedNoteScreenState extends ConsumerState<GeneratedNoteScreen> {
           .saveNote(
             NoteModel(
               content: note.toMarkdown(),
-              type: 'scan_note',
+              type: 'scanned_page',
               subjectId: courseId,
             ),
           );
