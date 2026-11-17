@@ -1,31 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
+import '../../../../app/theme/theme_mode_provider.dart';
 import '../../domain/models/settings_entry.dart';
 
-class ProfileSettingsCard extends StatefulWidget {
+class ProfileSettingsCard extends ConsumerStatefulWidget {
   const ProfileSettingsCard({super.key, required this.entries});
 
   final List<SettingsEntry> entries;
 
   @override
-  State<ProfileSettingsCard> createState() => _ProfileSettingsCardState();
+  ConsumerState<ProfileSettingsCard> createState() =>
+      _ProfileSettingsCardState();
 }
 
-class _ProfileSettingsCardState extends State<ProfileSettingsCard> {
+class _ProfileSettingsCardState extends ConsumerState<ProfileSettingsCard> {
+  static const String _darkModeId = 'dark-mode';
+
   late final Map<String, bool> _toggles = {
     for (final entry in widget.entries)
       if (entry.kind == SettingsEntryKind.toggle) entry.id: entry.initialValue,
   };
 
+  bool _valueFor(SettingsEntry entry, ThemeMode themeMode) {
+    if (entry.id == _darkModeId) return themeMode == ThemeMode.dark;
+    return _toggles[entry.id] ?? false;
+  }
+
+  void _onToggle(SettingsEntry entry, bool value) {
+    if (entry.id == _darkModeId) {
+      ref.read(themeModeProvider.notifier).state =
+          value ? ThemeMode.dark : ThemeMode.light;
+      return;
+    }
+    setState(() => _toggles[entry.id] = value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appColors = context.appColors;
+    final themeMode = ref.watch(themeModeProvider);
 
     return Container(
       width: double.infinity,
@@ -43,9 +63,8 @@ class _ProfileSettingsCardState extends State<ProfileSettingsCard> {
                 Divider(height: 1, thickness: 1, color: appColors.surfaceMuted),
               _SettingsRow(
                 entry: widget.entries[i],
-                value: _toggles[widget.entries[i].id] ?? false,
-                onToggle: (v) =>
-                    setState(() => _toggles[widget.entries[i].id] = v),
+                value: _valueFor(widget.entries[i], themeMode),
+                onToggle: (v) => _onToggle(widget.entries[i], v),
               ),
             ],
           ],
