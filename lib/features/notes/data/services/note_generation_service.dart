@@ -1,24 +1,19 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img;
 
 import '../../../../core/config/llm_config.dart';
 import '../../domain/models/generated_note.dart';
 import '../../domain/models/note_generation_exception.dart';
 import '../../domain/models/note_generation_request.dart';
 import 'note_generation_prompt.dart';
-
-typedef _PreparedImage = ({Uint8List bytes, int width, int height});
+import 'ocr_service.dart';
 
 class NoteGenerationService {
-  NoteGenerationService(this._client);
+  NoteGenerationService(this._client) : _ocrService = OcrService();
 
   final http.Client _client;
-
-  static const int _maxImageSide = 1568;
-  static const int _jpegQuality = 85;
+  final OcrService _ocrService;
 
   Future<GeneratedNote> generate(NoteGenerationRequest request) async {
     if (!LlmConfig.isConfigured) {
@@ -28,37 +23,23 @@ class NoteGenerationService {
       );
     }
 
-    final sourceBytes = await request.imageFile.readAsBytes();
-    final image = await compute(_prepareImage, sourceBytes);
+    final ocrText = await _ocrService.recognizeText(request.imageFile);
+    if (ocrText.trim().isEmpty) {
+      throw const NoteGenerationException(
+        'Görselde okunabilir bir yazı bulunamadı. Daha net bir fotoğraf '
+        'çekmeyi dene.',
+      );
+    }
 
     final body = jsonEncode({
       'model': LlmConfig.model,
       'max_tokens': LlmConfig.maxOutputTokens,
-      'tools': [NoteGenerationPrompt.toolDefinition],
-      'tool_choice': {
-        'type': 'function',
-        'function': {'name': NoteGenerationPrompt.toolName},
-      },
+      'response_format': {'type': 'json_object'},
       'messages': [
         {'role': 'system', 'content': NoteGenerationPrompt.system},
         {
           'role': 'user',
-          'content': [
-            {
-              'type': 'text',
-              'text': NoteGenerationPrompt.userMessage(
-                detections: request.detections,
-                imageWidth: image.width,
-                imageHeight: image.height,
-              ),
-            },
-            {
-              'type': 'image_url',
-              'image_url': {
-                'url': 'data:image/jpeg;base64,${base64Encode(image.bytes)}',
-              },
-            },
-          ],
+          'content': NoteGenerationPrompt.userMessage(ocrText),
         },
       ],
     });
@@ -117,9 +98,9 @@ class NoteGenerationService {
   }
 
   GeneratedNote _parseNote(Map<String, dynamic> body) {
-    final arguments = _toolArguments(body);
-    if (arguments != null) {
-      final note = GeneratedNote.fromJson(arguments);
+    final content = _messageContent(body);
+    if (content != null) {
+      final note = GeneratedNote.fromJson(content);
       if (note.title.isNotEmpty && note.sections.isNotEmpty) return note;
     }
     throw const NoteGenerationException(
@@ -127,59 +108,30 @@ class NoteGenerationService {
     );
   }
 
-  Map<String, dynamic>? _toolArguments(Map<String, dynamic> body) {
+  Map<String, dynamic>? _messageContent(Map<String, dynamic> body) {
     final choices = body['choices'];
     if (choices is! List<dynamic> || choices.isEmpty) return null;
     final first = choices.first;
     if (first is! Map<String, dynamic>) return null;
     final message = first['message'];
     if (message is! Map<String, dynamic>) return null;
+    final content = message['content'];
+    if (content is! String) return null;
 
-    final toolCalls = message['tool_calls'];
-    if (toolCalls is! List<dynamic>) return null;
-    for (final call in toolCalls) {
-      if (call is! Map<String, dynamic>) continue;
-      final function = call['function'];
-      if (function is! Map<String, dynamic>) continue;
-      if (function['name'] != NoteGenerationPrompt.toolName) continue;
-      final arguments = function['arguments'];
-      if (arguments is! String) continue;
-      try {
-        final decoded = jsonDecode(arguments);
-        if (decoded is Map<String, dynamic>) return decoded;
-      } on FormatException {
-        return null;
-      }
+    final withoutReasoning = content.replaceAll(
+      RegExp(r'<think>.*?</think>', dotAll: true),
+      '',
+    );
+    final start = withoutReasoning.indexOf('{');
+    final end = withoutReasoning.lastIndexOf('}');
+    if (start == -1 || end <= start) return null;
+
+    try {
+      final decoded = jsonDecode(withoutReasoning.substring(start, end + 1));
+      if (decoded is Map<String, dynamic>) return decoded;
+    } on FormatException {
+      return null;
     }
     return null;
   }
-}
-
-_PreparedImage _prepareImage(Uint8List sourceBytes) {
-  final decoded = img.decodeImage(sourceBytes);
-  if (decoded == null) {
-    throw const NoteGenerationException('Görsel çözümlenemedi.');
-  }
-
-  final oriented = img.bakeOrientation(decoded);
-  final longestSide = oriented.width > oriented.height
-      ? oriented.width
-      : oriented.height;
-  final resized = longestSide > NoteGenerationService._maxImageSide
-      ? img.copyResize(
-          oriented,
-          width: oriented.width >= oriented.height
-              ? NoteGenerationService._maxImageSide
-              : null,
-          height: oriented.height > oriented.width
-              ? NoteGenerationService._maxImageSide
-              : null,
-          interpolation: img.Interpolation.average,
-        )
-      : oriented;
-
-  final bytes = Uint8List.fromList(
-    img.encodeJpg(resized, quality: NoteGenerationService._jpegQuality),
-  );
-  return (bytes: bytes, width: resized.width, height: resized.height);
 }
