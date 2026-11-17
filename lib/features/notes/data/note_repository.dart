@@ -25,6 +25,21 @@ class NoteRepository {
     return List<Map<String, dynamic>>.from(response as List);
   }
 
+  Future<List<Map<String, dynamic>>> fetchRecentNotes({int limit = 10}) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('Kullanıcı bulunamadı');
+    }
+    final response = await _supabase
+        .from('notes')
+        .select()
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .limit(limit);
+
+    return List<Map<String, dynamic>>.from(response as List);
+  }
+
   Future<String> uploadAudio(File file) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) {

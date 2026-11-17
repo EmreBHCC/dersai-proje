@@ -11,6 +11,7 @@ import '../../../detection/presentation/screens/image_source_screen.dart';
 import '../../../exams/presentation/providers/exams_providers.dart';
 import '../../../exams/presentation/screens/exam_detail_screen.dart';
 import '../../../exams/presentation/screens/exams_screen.dart';
+import '../../../notes/presentation/screens/voice_note_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/courses_section.dart';
@@ -18,7 +19,7 @@ import '../widgets/homepage_header.dart';
 import '../widgets/quick_actions_row.dart';
 import '../widgets/recent_notes_section.dart';
 import '../widgets/todays_summary_card.dart';
-import '../../../notes/presentation/screens/voice_note_screen.dart';
+import 'how_it_works_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -58,7 +59,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final userFirstName = ref.watch(userFirstNameProvider);
     final todaysSummary = ref.watch(todaysSummaryProvider);
     final quickActions = ref.watch(quickActionsProvider);
-    final recentNotes = ref.watch(recentNotesProvider);
+    
     final courses = ref.watch(coursesProvider);
     final nearestExam = ref.watch(upcomingExamsProvider).first;
 
@@ -100,7 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(child: RecentNotesSection(notes: recentNotes)),
+            const SliverToBoxAdapter(child: RecentNotesSection()),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverPadding(
               padding: EdgeInsets.symmetric(
@@ -120,6 +121,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const VoiceNoteScreen(),
+                        ),
+                      );
+                    } else if (action.id == 'how-it-works') {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const HowItWorksScreen(),
                         ),
                       );
                     }

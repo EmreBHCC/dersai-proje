@@ -17,12 +17,16 @@ final courseNotesProvider =
     final content = row['content'] as String? ?? '';
     final type = row['type'] as String? ?? '';
     final title = content.length > 30 ? '${content.substring(0, 30)}...' : content;
+    final createdRaw = row['created_at'] as String?;
 
     return CourseNotePreview(
       id: row['id'] as String,
       title: title.isEmpty ? 'Not' : title,
       accentColor: Colors.blue,
       previewIcon: type == 'voice_note' ? Icons.mic_rounded : Icons.description_rounded,
+      content: content,
+      type: type,
+      createdAt: createdRaw == null ? null : DateTime.tryParse(createdRaw)?.toLocal(),
     );
   }).toList();
 });

@@ -6,6 +6,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_theme_extension.dart';
 import '../../domain/models/course_note_preview.dart';
+import '../screens/note_detail_screen.dart';
 
 class CourseNotesSection extends StatelessWidget {
   const CourseNotesSection({super.key, required this.notes, required this.onAddNote});
@@ -35,7 +36,16 @@ class CourseNotesSection extends StatelessWidget {
               if (index == notes.length) {
                 return _AddNoteTile(onTap: onAddNote);
               }
-              return _NotePreviewTile(note: notes[index]);
+              return _NotePreviewTile(
+                note: notes[index],
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => NoteDetailScreen(note: notes[index]),
+                    ),
+                  );
+                },
+              );
             },
           ),
         ),
@@ -45,49 +55,54 @@ class CourseNotesSection extends StatelessWidget {
 }
 
 class _NotePreviewTile extends StatelessWidget {
-  const _NotePreviewTile({required this.note});
+  const _NotePreviewTile({required this.note, required this.onTap});
 
   final CourseNotePreview note;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appColors = context.appColors;
 
-    return Container(
-      width: 110.w,
-      padding: EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: appColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: note.accentColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Center(
-                child: Icon(
-                  note.previewIcon,
-                  size: 26.sp,
-                  color: note.accentColor,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        width: 110.w,
+        padding: EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: appColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: note.accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Center(
+                  child: Icon(
+                    note.previewIcon,
+                    size: 26.sp,
+                    color: note.accentColor,
+                  ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            note.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.metadata(theme.colorScheme.onSurface),
-          ),
-        ],
+            SizedBox(height: 6.h),
+            Text(
+              note.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.metadata(theme.colorScheme.onSurface),
+            ),
+          ],
+        ),
       ),
     );
   }
