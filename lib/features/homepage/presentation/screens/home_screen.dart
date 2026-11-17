@@ -59,7 +59,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final userFirstName = ref.watch(userFirstNameProvider);
     final todaysSummary = ref.watch(todaysSummaryProvider);
     final quickActions = ref.watch(quickActionsProvider);
-    final recentNotes = ref.watch(recentNotesProvider);
+    
     final courses = ref.watch(coursesProvider);
     final nearestExam = ref.watch(upcomingExamsProvider).first;
 
@@ -101,7 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(child: RecentNotesSection(notes: recentNotes)),
+            const SliverToBoxAdapter(child: RecentNotesSection()),
             SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             SliverPadding(
               padding: EdgeInsets.symmetric(
